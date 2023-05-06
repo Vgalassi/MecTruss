@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="styles.css">
+        <title>Truss-Calculator</title>
+    </head>
+    <body>
+        <p>Truss Calculator</p>
+        <div class="container">
+            <section>
+                <div class="componentes">
+                    <p class="semititle">Componentes</p>
+                    <div id="nós_display">
+                        <p>Nós:</p>
+
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="componentes">
+                <p class="semititle">Adicionar</p>
+                <select name="Adicionar Componente" onchange="trocar(value)" >
+                    <option value="nósdiv" >Nós</option>
+                    <option value="membrosdiv" >Membros</option>
+                    <option value="suportesdiv" >Bases</option>
+                    <option value="forçasdiv" >Forças</option>
+                </select>
+                <div id="nósdiv" >
+                    <input id = "nome_nó" type="text" value="" placeholder="Nome">
+                    <input id="nó_x" type="Number" placeholder="Componente X" >
+                    <input id="nó_y" type="Number" placeholder="Componente Y" >
+                    <button style="margin-top: 10px;" onclick="add_nó()">Adicionar</button>
+                </div>
+                <div id="membrosdiv" style="display: none;">
+                    <input type="text" value="" placeholder="Nome">
+                    <input type="Number" placeholder="Nó 1" >
+                    <input type="Number" placeholder="Nó 2" >
+                    <button style="margin-top: 10px;">Adicionar</button>
+                </div>
+                <div id="forçasdiv" style="display: none;">
+                    <input type="text" value="" placeholder="Nó">
+                    <input type="Number" placeholder="Magnetude X" >
+                    <input type="Number" placeholder="Magnetude Y" >
+                    <button style="margin-top: 10px;">Adicionar</button>
+                </div>
+                <div id="suportesdiv" style="display: none;">
+                    <input type="text" value="" placeholder="Nome">
+                    <input type="Number" placeholder="Nó" >
+                    <input type="Number" placeholder="Tipo" >
+                    <button style="margin-top: 10px;">Adicionar</button>
+                </div>
+                
+
+            </div>
+        </section>
+    </div>
+</body>
+<script src="main.js"></script>
+</html>
