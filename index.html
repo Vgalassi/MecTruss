@@ -26,7 +26,7 @@
                     <option value="nósdiv" >Nós</option>
                     <option value="membrosdiv" >Membros</option>
                     <option value="suportesdiv" >Bases</option>
-                    <option value="forçasdiv" >Forças</option>
+                    <option value="forcasdiv" >Forças</option>
                 </select>
                 <div id="nósdiv" >
                     <input id = "nome_nó" type="text" value="" placeholder="Nome">
@@ -36,19 +36,27 @@
                 </div>
                 <div id="membrosdiv" style="display: none;">
                     <input type="text" value="" placeholder="Nome">
-                    <input type="Number" placeholder="Nó 1" >
-                    <input type="Number" placeholder="Nó 2" >
+                    <select name="Nó 1" class="nó_seletor">
+                        <option value="" selected disabled hidden>Nenhum nó selecionado</option>
+                    </select>
+                    <select name="Nó 2" class="nó_seletor">
+                        <option value="" selected disabled hidden>Nenhum nó selecionado</option>
+                    </select>
                     <button style="margin-top: 10px;">Adicionar</button>
                 </div>
-                <div id="forçasdiv" style="display: none;">
-                    <input type="text" value="" placeholder="Nó">
-                    <input type="Number" placeholder="Magnetude X" >
-                    <input type="Number" placeholder="Magnetude Y" >
-                    <button style="margin-top: 10px;">Adicionar</button>
+                <div id="forcasdiv" style="display: none;">
+                    <select name="Nó 1" class="nó_seletor" id="nó_seletor_forca">
+                        <option value="" selected disabled hidden>Nenhum nó selecionado</option>
+                    </select>
+                    <input id="força_x" type="Number" placeholder="Magnetude X" >
+                    <input id = "força_y" type="Number" placeholder="Magnetude Y" >
+                    <button style="margin-top: 10px;" onclick="add_forca()">Adicionar</button>
                 </div>
                 <div id="suportesdiv" style="display: none;">
                     <input type="text" value="" placeholder="Nome">
-                    <input type="Number" placeholder="Nó" >
+                    <select name="Nó 1" class="nó_seletor" >
+                        <option value="" selected disabled hidden>Nenhum nó selecionado</option>
+                    </select>
                     <input type="Number" placeholder="Tipo" >
                     <button style="margin-top: 10px;">Adicionar</button>
                 </div>
