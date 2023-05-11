@@ -1,4 +1,5 @@
 let nós = [];
+let apoios = [];
 let componente_selecionado = document.getElementById('nósdiv');
 let forca_id = 0;
 let grafico = document.getElementById('grafico');
@@ -40,6 +41,7 @@ function add_nó(){
         x: Number(nó_x.value),
         y: Number(nó_y.value),
         forcas: forcas
+
     }
 
     gtx.beginPath();
@@ -113,22 +115,39 @@ function add_forca(){
 
     let coordenadasx = nós[i].x;
     let coordenadasy = nós[i].y;
+    let força_texto;
     if(new_forca.x>0){
         coordenadasx += 1;
+        
     }else if(new_forca.x<0){
         coordenadasx -= 1;
+        
     }
     if(new_forca.y>0){
         coordenadasy += 2;
     }else if(new_forca.y<0){
         coordenadasy -= 2;
+        
     }
+    
+
     coordenadasx = coordenadasx * 40 + 40;
     coordenadasy = 400 - coordenadasy*20
     
     gtx.beginPath();
     gtx.moveTo(nós[i].x*40+40,400 - nós[i].y*20);
     gtx.lineTo(coordenadasx,coordenadasy);
+    
+    força_texto = Math.sqrt(new_forca.x**2 + new_forca.y**2);
+    if(força_texto%1 != 0){
+        força_texto = força_texto.toFixed(2);
+    }
+    força_texto += 'N';
+
+    gtx.font = "10px Arial";
+    gtx.fillText(força_texto,coordenadasx+15,coordenadasy+15);
+
+
     const angle = Math.atan2(coordenadasy - (400 - nós[i].y*20), coordenadasx - (nós[i].x*40+40));
     gtx.lineTo(coordenadasx - 10 * Math.cos(angle - Math.PI / 6), coordenadasy - 10 * Math.sin(angle - Math.PI / 6));
     gtx.moveTo(coordenadasx, coordenadasy);
@@ -165,7 +184,6 @@ function add_membro(){
     let nome_membro = nós[i].nome + nós[j].nome;
 
 
-
     
     if(nós[i].x == nós[j].x){
         componentex = undefined;
@@ -198,6 +216,54 @@ function add_membro(){
     p_nó.appendChild(new_membro_display);
     p_nó2.appendChild(new_membro_display.cloneNode(true));
 
+
+
+}
+
+function add_apoio(){
+    let nó_selecionado = document.getElementById('nó_seletor_apoio').value;
+    let tipo_selecionado = document.getElementById('tipo_seletor').value;
+    i = find_nó(nó_selecionado);
+    
+    let new_apoio = {
+        nó: nós[i].nome,
+        x: 0,
+        y: 0,
+        Mo: 0
+    }
+
+    let texto;
+    let img;
+    let inc = 0;
+    switch (tipo_selecionado){
+        case '1':
+            new_apoio.y = undefined;
+            texto = `V${nós[i].nome}`
+            img = document.getElementById("movel");
+            break;
+        case '2':
+            new_apoio.y = undefined;
+            new_apoio.x = undefined;
+            texto = `V${nós[i].nome} H${nós[i].nome}`
+            img = document.getElementById("fixo");
+            break;
+        case '3':
+            new_apoio.y = undefined;
+            new_apoio.x = undefined;
+            new_apoio.Mo = undefined;
+            texto = ` V${nós[i].nome} H${nós[i].nome} Mo${nós[i].nome}`
+            img = document.getElementById("engastamento");
+            inc = img.height/2;
+            break;
+    }
+
+    apoios.push(new_apoio);
+    gtx.drawImage(img, nós[i].x*40+40 - img.width/2, 400 - nós[i].y*20-inc);
+
+    let new_apoio_display = document.createElement('p');
+    let p_nó = document.getElementById(nós[i].nome);
+    new_apoio_display.innerText = `Reações apoio ${texto}`;
+    p_nó.appendChild(new_apoio_display);
 
 
 }
