@@ -57,6 +57,10 @@ function add_nó(){
     nós.push(new_nó);
     let nós_display = document.getElementById('nós_display');
     let display_newnó = document.createElement('p');
+    display_newnó.style.borderBottom =  "solid #bbbec2";
+    display_newnó.style.borderWidth =  "2px";
+    display_newnó.style.padding = "10px"
+    
     let option_nó = document.createElement('option');
     let nó_seletores = document.getElementsByClassName('nó_seletor');
     
@@ -139,7 +143,10 @@ function add_forca(){
     nós[i].forcas.push(new_forca);
     let new_forca_display = document.createElement('p');
     let p_nó = document.getElementById(nós[i].nome);
+
     new_forca_display.innerText = ` F${new_forca.id}: (${new_forca.x},${new_forca.y})`;
+    new_forca_display.style.fontSize = "18px"
+    new_forca_display.style.color = "#9e1d11"
     p_nó.appendChild(new_forca_display);
 
     document.getElementById('força_x').value = null;
@@ -195,6 +202,7 @@ function add_membro(){
     let p_nó = document.getElementById(nós[i].nome);
     let p_nó2 = document.getElementById(nós[j].nome);
     new_membro_display.innerText = `Membro ${new_membro.nome}`;
+    new_membro_display.style.fontSize = "18px"
     p_nó.appendChild(new_membro_display);
     p_nó2.appendChild(new_membro_display.cloneNode(true));
 
