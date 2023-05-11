@@ -264,7 +264,7 @@ function add_apoio(){
             inc = img.height/2;
             break;
     }
-
+    
     apoios.push(new_apoio);
     gtx.drawImage(img, nós[i].x*40+40 - img.width/2, 400 - nós[i].y*20-inc);
 
@@ -275,3 +275,4 @@ function add_apoio(){
 
 
 }
+///xd
