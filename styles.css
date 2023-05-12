@@ -38,7 +38,7 @@ p{
 }
 
 .semititle{
-    font-size: 20px;
+    font-size: 25px;
     font-style: bold ;
    
 
@@ -58,7 +58,7 @@ p{
 }
 
 input{
-    height: 15px;
+    height: 12px;
     padding: 4px;
     margin: 2px
     
@@ -72,4 +72,10 @@ button{
     cursor: pointer;
     border: none;
 
+}
+
+select{
+    width: 75%;
+    height: 25px;
+    margin-bottom: 5px;
 }
