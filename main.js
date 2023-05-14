@@ -1,14 +1,20 @@
+
 ///Vetor utilizado para armazenar nós
 let nós = [];
+let nós_id = 0;
 //Vetor utilizado para armazenar apoios
 let apoios = [];
+//Vetor carregando forças x/y
+let forcasx = [];
+let forcasy = [];
 ///Carrega a div que está sendro mostrada na tela de adicionar
 let componente_selecionado = document.getElementById('nósdiv');
 ///Contador de forças
 let forca_id = 0;
+//Contador de membros
+let membros = 0;
 ///Carrega o canvas principal
 let grafico = document.getElementById('grafico');
-
 let gtx = grafico.getContext('2d');
 
 
@@ -74,11 +80,16 @@ function add_nó(){
     let forcas = []
     let new_nó = {
         nome: nome_nó.value,
+        id: nós_id,
         x: Number(nó_x.value),
         y: Number(nó_y.value),
-        forcas: forcas
+        forcas: forcas,
+        reacoes: [],
+        apoio: null
 
     }
+
+    nós_id++;
 
 
     ///Desenhando o nó no canvas
@@ -176,17 +187,21 @@ function add_forca(){
     //Criando uma nova força no vetor de força do nó selecionado
     let i = find_nó(nó_selecionado);
 
-
     componentex = Number(componentex);
     componentey = Number(componentey);
 
     let new_forca = {
-        id: forca_id,
+        nome: forca_id,
         x: componentex,
         y: componentey
     }
     
+    forcasx.push(componentex);
+    forcasy.push(componentey);
+
+
     nós[i].forcas.push(new_forca);
+
     //Incrementando contador de força
     forca_id++;
     
@@ -240,7 +255,7 @@ function add_forca(){
     let new_forca_display = document.createElement('p');
     let p_nó = document.getElementById(nós[i].nome);
 
-    new_forca_display.innerText = ` F${new_forca.id}: (${new_forca.x},${new_forca})`;
+    new_forca_display.innerText = ` F${new_forca.nome}: (${new_forca.x},${new_forca.y})`;
     new_forca_display.style.fontSize = "18px"
     new_forca_display.style.color = "#9e1d11"
     p_nó.appendChild(new_forca_display);
@@ -249,7 +264,7 @@ function add_forca(){
     document.getElementById('força_x').value = null;
     document.getElementById('força_y').value = null;
 
-    
+
 } 
 
 function add_membro(){
@@ -284,13 +299,18 @@ function add_membro(){
     let componentey;
     let nome_membro = nós[i].nome + nós[j].nome;
 
-    //Verificando se os nós já 
+    //Verificando se os nós já tem um membro
     for(let k = 0;k< nós[i].forcas.length;k++){
         if(nós[i].forcas[k].nome == nome_membro){
             return window.alert('Já existe um membro nesses nós')
         }
     }
 
+    //Calculando o ângulo do membro
+    let deltax = nós[i].x - nós[j].x;
+    let deltay = nós[i].y - nós[j].y;
+
+    let angulo_calc = Math.atan2(deltax, deltay);
 
     //Cálculando a possibilidade de reação dos nós
     if(nós[i].x == nós[j].x){
@@ -307,8 +327,11 @@ function add_membro(){
     let new_membro = {
         nome: nome_membro,
         x: componentex,
-        y: componentey
+        y: componentey,
+        angulo: angulo_calc
     }
+
+    membros++;
 
     //Desenhar um linha ligando os dois nós para indicar o membro
     gtx.moveTo(nós[i].x*40+40,400 - nós[i].y*20);
@@ -317,8 +340,8 @@ function add_membro(){
 
 
     //Colocar as reações no vetor de forças  dos dois nós
-    nós[i].forcas.push(new_membro);
-    nós[j].forcas.push(new_membro);
+    nós[i].reacoes.push(new_membro);
+    nós[j].reacoes.push(new_membro);
 
 
     //Colocar um p com nome dos membros na div de componentes
@@ -355,11 +378,13 @@ function add_apoio(){
 
     //Criando nova variável do apoio
     let new_apoio = {
-        nó: nós[i].nome,
+        nó: i,
+        tipo: null,
         x: 0,
         y: 0,
         Mo: 0
     }
+    nós[i].apoio = apoios.length;
 
     let texto;
     let img;
@@ -368,12 +393,14 @@ function add_apoio(){
     switch (tipo_selecionado){
         case '1': //Apoio móvel, apenas uma reação vertical
             new_apoio.y = undefined;
+            new_apoio.tipo = 1;
             texto = `V${nós[i].nome}`
             img = document.getElementById("movel");
             break;
         case '2'://Apoio fixo, uma reação vertical e horizontal
             new_apoio.y = undefined;
             new_apoio.x = undefined;
+            new_apoio.tipo = 2;
             texto = `V${nós[i].nome} H${nós[i].nome}`
             img = document.getElementById("fixo");
             break;
@@ -381,6 +408,7 @@ function add_apoio(){
             new_apoio.y = undefined;
             new_apoio.x = undefined;
             new_apoio.Mo = undefined;
+            new_apoio.tipo = 3;
             texto = ` V${nós[i].nome} H${nós[i].nome} Mo${nós[i].nome}`
             img = document.getElementById("engastamento");
             inc = img.height/2;
@@ -395,8 +423,136 @@ function add_apoio(){
     let new_apoio_display = document.createElement('p');
     let p_nó = document.getElementById(nós[i].nome);
     new_apoio_display.innerText = `Reações apoio ${texto}`;
-    new_apoio_display.style.fontSize = "18px"
+    new_apoio_display.style.fontSize = "18px";
     p_nó.appendChild(new_apoio_display);
 
 
+}
+
+
+function calc_apoios(){
+
+    let centro;
+    let k = 0;
+    resultados = [
+        [0],
+        [0],
+        [0]
+    ]
+    aux = nós[apoios[0].nó]
+    for(let i = 0;i<apoios.length;i++){
+        if(apoios[i].tipo>aux){
+            aux = nós[apoios[i].nó];
+        }
+    }
+    centro = aux;
+    
+
+    for(i = 0;i<nós.length;i++){
+        for(j = 0;j<nós[i].forcas.length;j++){
+            resultados[0][0] -= nós[i].forcas[j].x;
+            resultados[1][0] -= nós[i].forcas[j].y;
+            
+            resultados[2][0] -= nós[i].forcas[j].x * (nós[i].y - centro.y) + nós[i].forcas[j].y * (nós[i].x - centro.x);
+    }}
+   
+
+    let matriz1 = [
+        [0,0,0],
+        [0,0,0],
+        [0,0,0]
+    ]
+    j = 0
+    for(i = 0;i<apoios.length;i++){
+        switch(apoios[i].tipo){
+            case 1:
+                matriz1[1][j] = 1;
+                matriz1[2][j] =  1 * (nós[apoios[i].nó].x - centro.x);
+                j++
+                break;
+            case 2:
+                matriz1[1][j] = 1;
+                matriz1[2][j] =  1 * (nós[apoios[i].nó].x - centro.x);
+                j++
+                matriz1[0][j] = 1;
+                matriz1[2][j] =  1 * (nós[apoios[i].nó].y - centro.y);
+                j++
+                break;
+            case 3:
+                matriz1[1][j] = 1;
+                matriz1[2][j] =  1 * (nós[apoios[i].nó].x - centro.x);
+                j++
+                matriz1[0][j] = 1;
+                matriz1[2][j] =  1 * (nós[apoios[i].nó].y - centro.y);
+                j++
+                matriz1[2][j] = 1;
+                break;
+
+    }
+    
+}
+
+
+    return math.lusolve(matriz1, resultados);
+}
+
+
+function reacoes_membros(){
+    let matriz_1 = Array(nós.length * 2).fill().map(() => Array(membros).fill(0));
+    let matriz_2 = Array(nós.length * 2).fill().map(() => Array(1).fill(0));
+    let k = 0;
+
+    for(let i = 0;i<nós.length;i++){
+        for(let j = 0;j<nós[i].forcas.length;j++){
+            matriz_2[k][0] -=  nós[i].forcas[j].x;
+         }
+
+         k++;
+
+         for(let j = 0;j<nós[i].forcas.length;j++){
+            matriz_2[k][0] -=  nós[i].forcas[j].y;
+         }
+         k++
+         
+    }
+
+
+
+
+    window.alert(matriz_2);
+}
+
+
+function calcular(){
+    reacoes_apoios = calc_apoios();
+    let j = 0;
+    let div = document.getElementById("resultados");
+    let p;
+    for(let i = 0;i< apoios.length; i++){
+        if(apoios[i].y == undefined){
+            apoios[i].y = reacoes_apoios[j][0];
+            p = document.createElement('p');
+            p.innerText = `V${nós[apoios[i].nó].nome} = ${apoios[i].y}`
+            div.appendChild(p);
+            j++;
+        }
+        if(apoios[i].x == undefined){
+           apoios[i].x = reacoes_apoios[j][0];
+           
+           p = document.createElement('p');
+           p.innerText = `H${nós[apoios[i].nó].nome} = ${apoios[i].x}`
+           div.appendChild(p);
+           j++
+        }
+        if(apoios[i].Mo == undefined){
+            apoios[i].Mo = reacoes_apoios[j][0];
+            p = document.createElement('p');
+            p.innerText = `Mo${nós[apoios[i].nó].nome} = ${apoios[i].Mo}`;
+            div.appendChild(p);
+            j++;
+         }
+         nós[apoios[i].nó].forcas.push(apoios[i])
+    }
+    reacoes_membros();
+    
 }
