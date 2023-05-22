@@ -12,7 +12,7 @@ let componente_selecionado = document.getElementById('nósdiv');
 ///Contador de forças
 let forca_id = 0;
 //Contador de membros
-let membros = 0;
+var membros = [];
 ///Carrega o canvas principal
 let grafico = document.getElementById('grafico');
 let gtx = grafico.getContext('2d');
@@ -98,7 +98,7 @@ function add_nó(){
     gtx.strokeStyle = '#00000';
     gtx.fill();
     gtx.stroke();
-
+    
     gtx.font = "10px Arial";
     gtx.textAlign = "center";
     gtx.fillText(nome_nó.value,nó_x.value*40+40,390-nó_y.value*20);
@@ -224,7 +224,7 @@ function add_forca(){
         
     }
     
-
+    gtx.strokeStyle = '#E60d11';
     // Desenhando vetor no canvas e colocando o valor de sua força
     coordenadasx = coordenadasx * 40 + 40;
     coordenadasy = 400 - coordenadasy*20
@@ -313,10 +313,10 @@ function add_membro(){
     let angulo_calc = Math.atan2(deltax, deltay);
 
     //Cálculando a possibilidade de reação dos nós
-    if(nós[i].x == nós[j].x){
+    if(nós[i].y == nós[j].y){
         componentex = undefined;   //Se o membro está deitado, apenas reação x desconhecida
         componentey = 0;
-    }else if(nós[i].y == nós[j].y){ //Se o membro está de pé, apenas reação y desconhecida
+    }else if(nós[i].x == nós[j].x){ //Se o membro está de pé, apenas reação y desconhecida
         componentex = 0;
         componentey = undefined;
     }else{                          //Se o membro está inclinado,reação x e y desconhecida
@@ -328,12 +328,14 @@ function add_membro(){
         nome: nome_membro,
         x: componentex,
         y: componentey,
+        nós: [i,j],
         angulo: angulo_calc
     }
 
-    membros++;
+    
 
     //Desenhar um linha ligando os dois nós para indicar o membro
+    gtx.strokeStyle = '#000000';
     gtx.moveTo(nós[i].x*40+40,400 - nós[i].y*20);
     gtx.lineTo(nós[j].x*40+40,400 - nós[j].y*20);
     gtx.stroke();
@@ -342,6 +344,8 @@ function add_membro(){
     //Colocar as reações no vetor de forças  dos dois nós
     nós[i].reacoes.push(new_membro);
     nós[j].reacoes.push(new_membro);
+    membros.push(new_membro);
+    
 
 
     //Colocar um p com nome dos membros na div de componentes
@@ -452,7 +456,6 @@ function calc_apoios(){
         for(j = 0;j<nós[i].forcas.length;j++){
             resultados[0][0] -= nós[i].forcas[j].x;
             resultados[1][0] -= nós[i].forcas[j].y;
-            
             resultados[2][0] -= nós[i].forcas[j].x * (nós[i].y - centro.y) + nós[i].forcas[j].y * (nós[i].x - centro.x);
     }}
    
@@ -497,29 +500,171 @@ function calc_apoios(){
 }
 
 
+
 function reacoes_membros(){
-    let matriz_1 = Array(nós.length * 2).fill().map(() => Array(membros).fill(0));
-    let matriz_2 = Array(nós.length * 2).fill().map(() => Array(1).fill(0));
+    /*
+    Função reacoes membros
+    Calcula os membros
+    */
+
+    
+    //Setando matriz para regra de cramer
+    let matriz_1 = Array(membros.length).fill().map(() => Array(membros.length).fill(0));
+    let matriz_2 = Array(membros.length).fill().map(() => Array(1).fill(0));
     let k = 0;
+    
+    
+    //Copiando vetores
+    membros_func = Array.from(membros);
+    nós_func = Array.from(nós);
+    
+    let m = 0;
+    let n = 1;
+    let o = 0;
+    
 
-    for(let i = 0;i<nós.length;i++){
-        for(let j = 0;j<nós[i].forcas.length;j++){
-            matriz_2[k][0] -=  nós[i].forcas[j].x;
-         }
+    //Enquanto a matriz não estiver completa
+    while(k != membros.length){
 
-         k++;
+        //Matriz que carrega nós
+        //nós_indice[i][0] = carrega número de membros do nó i
+        //nós_índice[i][1++] = carrega endereços do membro
+        nós_indice = Array(nós_func.length).fill().map(() => Array(1).fill(0));
+        
+        console.log(nós_indice);
+        console.log(membros_func);
+        for(i = 0;i<membros_func.length;i++){
+            nós_indice[membros_func[i].nós[0]-o][0]++;
+            nós_indice[membros_func[i].nós[0]-o].push(i);
+            nós_indice[membros_func[i].nós[1]-o][0]++;
+            nós_indice[membros_func[i].nós[1]-o].push(i);
+        }
+        console.log(nós_indice);
+        //Escolhe o nó com o maior número de membros
+        let maior_nó = nós_indice[0];
+        j = 0;
+        for(i = 0;i<nós_indice.length;i++){
+            if(nós_indice[i][0]>maior_nó[0]){
+                maior_nó = nós_indice[i];
+                j = i;
+            }
+        }
+        
+        console.log(maior_nó);
+        //maior_nó[0] vai carregar endereço do nó
+        maior_nó[0]= j;
+        console.log(nós_func);
+        console.log(maior_nó);
+        
+        
+        let flag = false;
+        let flagx = true;
+        let flagy = true;
+        //Percorrendo todos os membros do maior nó
+        if(k+2>membros.length){
+            n = 0;
+            flagy = false
+            for(j = 0;j<nós_func[maior_nó[0]].reacoes;j++){
+                    if(nós_func[maior_nó[0]].reacoes[j].nome == membros_func[0].nome){ 
+                        if(nós_func[maior_nó[0]].reacoes[j].x == 0){
+                            flagx = false;
+                            flagy = true;
+                        }
+                }
+            }
+        }
+        
+        for(i = 0;i<nós_func[maior_nó[0]].reacoes.length;i++){
 
-         for(let j = 0;j<nós[i].forcas.length;j++){
-            matriz_2[k][0] -=  nós[i].forcas[j].y;
-         }
-         k++
-         
+            
+            //Definindo o m para colocar na matriz_1
+            for(j = 0;j<membros.length;j++){
+                if(nós_func[maior_nó[0]].reacoes[i].nome == membros[j].nome){
+                    m = j;
+                }
+            }
+            
+            
+            //Conferindo se o membro já foi colocado em outro nó
+            //Se já estiver flag = true (colocar resultado negativo na matriz)
+            for(j = 0;j<membros.length;j++){
+                if(matriz_1[j][m] == 1){
+                    flag = true;
+                }
+            }
+            
+            console.log(m)
+            console.log(k)
+            //Membro deitado
+            if(nós_func[maior_nó[0]].reacoes[i].y != undefined && flagx == true){
+                
+                if(flag == false){
+                    matriz_1[k][m] = 1
+                }else{
+                    matriz_1[k][m] = -1
+                }
+            }
+            //Membro de pé
+            else if(nós_func[maior_nó[0]].reacoes[i].x != undefined && flagy == true){
+                
+                if(flag == false){
+                    matriz_1[k+n][m] = 1
+                }else{
+                    matriz_1[k+n][m] = -1
+                }
+            }
+            //Membro inclinado
+            else{
+                if(flag == false){
+                    matriz_1[k][m] = math.cos(nós_func[maior_nó[0]].reacoes[i].angulo)
+                    matriz_1[k+n][m] = math.sin(nós_func[maior_nó[0]].reacoes[i].angulo)
+                }else{
+                    matriz_1[k][m] = -math.cos(nós_func[maior_nó[0]].reacoes[i].angulo)
+                    matriz_1[k+n][m] = -math.sin(nós_func[maior_nó[0]].reacoes[i].angulo)
+                }
+            }
+            
+        }
+        //Somando as forças para colocar na segunda matriz
+        if(flagy == true && flagx == true){
+        for(j = 0;j<nós_func[maior_nó[0]].forcas.length;j++){
+            matriz_2[k][0] -=  nós_func[maior_nó[0]].forcas[j].x;
+            matriz_2[k+1][0] -=  nós_func[maior_nó[0]].forcas[j].y;
+        }}
+        if(flagy == false && flagx == true){
+            for(j = 0;j<nós_func[maior_nó[0]].forcas.length;j++){
+                matriz_2[k][0] -=  nós_func[maior_nó[0]].forcas[j].x;
+            }
+            k--;
+        }
+        
+        if(flagy == true && flagx == false){
+            for(j = 0;j<nós_func[maior_nó[0]].forcas.length;j++){
+                matriz_2[k][0] -=  nós_func[maior_nó[0]].forcas[j].y;
+            }
+            k--;
+        }
+        
+
+
+        //Retira os membros utilizados no nó do vetor
+        j = 0
+        for(i = 1;i<maior_nó.length;i++){
+            membros_func.splice(maior_nó[i]-j,1);
+            j++
+        }
+        k+= 2;
+        console.log(`O VALOR DE K NO FINAL DO LOOP É   ${k}`);
+        o++;
+        nós_func.splice(maior_nó[0],1);
+        console.log(matriz_1);
+        console.log(matriz_2);
     }
-
-
-
-
-    window.alert(matriz_2);
+    
+    
+    console.log(matriz_1);
+    console.log(matriz_2);
+    return math.lusolve(matriz_1, matriz_2);
 }
 
 
@@ -553,6 +698,9 @@ function calcular(){
          }
          nós[apoios[i].nó].forcas.push(apoios[i])
     }
-    reacoes_membros();
+
+    let membrosx_y =  reacoes_membros();
+    console.log(membrosx_y);
+    
     
 }
