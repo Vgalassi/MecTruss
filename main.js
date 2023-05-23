@@ -13,6 +13,8 @@ let componente_selecionado = document.getElementById('nósdiv');
 let forca_id = 0;
 //Contador de membros
 var membros = [];
+//Contador de reações dos apoios
+let apoios_reacoes_count = 0;
 ///Carrega o canvas principal
 let grafico = document.getElementById('grafico');
 let gtx = grafico.getContext('2d');
@@ -85,7 +87,7 @@ function add_nó(){
         y: Number(nó_y.value),
         forcas: forcas,
         reacoes: [],
-        apoio: null
+        utilizado: false
 
     }
 
@@ -396,12 +398,14 @@ function add_apoio(){
     //Colocando valores de acordo com o tipo de apoio selecionado
     switch (tipo_selecionado){
         case '1': //Apoio móvel, apenas uma reação vertical
+            apoios_reacoes_count++;
             new_apoio.y = undefined;
             new_apoio.tipo = 1;
             texto = `V${nós[i].nome}`
             img = document.getElementById("movel");
             break;
         case '2'://Apoio fixo, uma reação vertical e horizontal
+            apoios_reacoes_count+= 2;
             new_apoio.y = undefined;
             new_apoio.x = undefined;
             new_apoio.tipo = 2;
@@ -409,6 +413,7 @@ function add_apoio(){
             img = document.getElementById("fixo");
             break;
         case '3': //Apoio de engastamento, reação vertical,horizontal e de momento
+            apoios_reacoes_count+= 3;
             new_apoio.y = undefined;
             new_apoio.x = undefined;
             new_apoio.Mo = undefined;
@@ -436,13 +441,11 @@ function add_apoio(){
 
 function calc_apoios(){
 
+
+
     let centro;
     let k = 0;
-    resultados = [
-        [0],
-        [0],
-        [0]
-    ]
+    let resultados = Array(apoios_reacoes_count).fill().map(() => Array(1).fill(0));
     aux = nós[apoios[0].nó]
     for(let i = 0;i<apoios.length;i++){
         if(apoios[i].tipo>aux){
@@ -452,33 +455,37 @@ function calc_apoios(){
     centro = aux;
     
 
+    if(apoios_reacoes_count == 3){
+        k = 1;
+    }
+
     for(i = 0;i<nós.length;i++){
         for(j = 0;j<nós[i].forcas.length;j++){
-            resultados[0][0] -= nós[i].forcas[j].x;
-            resultados[1][0] -= nós[i].forcas[j].y;
-            resultados[2][0] -= nós[i].forcas[j].x * (nós[i].y - centro.y) + nós[i].forcas[j].y * (nós[i].x - centro.x);
+            resultados[0][0] -= nós[i].forcas[j].y;
+            if(apoios_reacoes_count == 3 ||  (apoios.length == 1 && apoios_reacoes_count == 2)){
+            resultados[apoios_reacoes_count-k-1][0] -= nós[i].forcas[j].x;
+            }
+            if(apoios_reacoes_count == 3 || (apoios.length == 2 && apoios_reacoes_count == 2)){
+                resultados[apoios_reacoes_count-1][0] -= nós[i].forcas[j].x * (nós[i].y - centro.y) + nós[i].forcas[j].y * (nós[i].x - centro.x);
+            }
     }}
    
 
-    let matriz1 = [
-        [0,0,0],
-        [0,0,0],
-        [0,0,0]
-    ]
+    let matriz1 = Array(apoios_reacoes_count).fill().map(() => Array(apoios_reacoes_count ).fill(0));
     j = 0
     for(i = 0;i<apoios.length;i++){
         switch(apoios[i].tipo){
             case 1:
-                matriz1[1][j] = 1;
-                matriz1[2][j] =  1 * (nós[apoios[i].nó].x - centro.x);
+                matriz1[0][j] = 1;
+                if(apoios_reacoes_count == 3 || (apoios.length == 2 && apoios_reacoes_count == 2)){
+                    matriz1[apoios_reacoes_count-1][j] =  1 * (nós[apoios[i].nó].x - centro.x);
+                }
                 j++
                 break;
             case 2:
-                matriz1[1][j] = 1;
-                matriz1[2][j] =  1 * (nós[apoios[i].nó].x - centro.x);
-                j++
                 matriz1[0][j] = 1;
-                matriz1[2][j] =  1 * (nós[apoios[i].nó].y - centro.y);
+                j++
+                matriz1[1][j] = 1;
                 j++
                 break;
             case 3:
@@ -490,7 +497,7 @@ function calc_apoios(){
                 j++
                 matriz1[2][j] = 1;
                 break;
-
+ 
     }
     
 }
@@ -520,7 +527,7 @@ function reacoes_membros(){
     
     let m = 0;
     let n = 1;
-    let o = 0;
+    
     
 
     //Enquanto a matriz não estiver completa
@@ -534,17 +541,17 @@ function reacoes_membros(){
         console.log(nós_indice);
         console.log(membros_func);
         for(i = 0;i<membros_func.length;i++){
-            nós_indice[membros_func[i].nós[0]-o][0]++;
-            nós_indice[membros_func[i].nós[0]-o].push(i);
-            nós_indice[membros_func[i].nós[1]-o][0]++;
-            nós_indice[membros_func[i].nós[1]-o].push(i);
+            nós_indice[membros_func[i].nós[0]][0]++;
+            nós_indice[membros_func[i].nós[0]].push(i);
+            nós_indice[membros_func[i].nós[1]][0]++;
+            nós_indice[membros_func[i].nós[1]].push(i);
         }
         console.log(nós_indice);
         //Escolhe o nó com o maior número de membros
         let maior_nó = nós_indice[0];
         j = 0;
         for(i = 0;i<nós_indice.length;i++){
-            if(nós_indice[i][0]>maior_nó[0]){
+            if(nós_indice[i][0]>maior_nó[0] && nós_func[i].utilizado == false){
                 maior_nó = nós_indice[i];
                 j = i;
             }
@@ -655,8 +662,8 @@ function reacoes_membros(){
         }
         k+= 2;
         console.log(`O VALOR DE K NO FINAL DO LOOP É   ${k}`);
-        o++;
-        nós_func.splice(maior_nó[0],1);
+        
+        nós_func[maior_nó[0]].utilizado = true;
         console.log(matriz_1);
         console.log(matriz_2);
     }
@@ -669,6 +676,13 @@ function reacoes_membros(){
 
 
 function calcular(){
+
+    if(apoios_reacoes_count>3 || apoios.length>2){
+        return window.alert('Sistema não cálculavel com a reações de equilíbrio ')
+    }
+
+
+
     reacoes_apoios = calc_apoios();
     let j = 0;
     let div = document.getElementById("resultados");
@@ -677,7 +691,7 @@ function calcular(){
         if(apoios[i].y == undefined){
             apoios[i].y = reacoes_apoios[j][0];
             p = document.createElement('p');
-            p.innerText = `V${nós[apoios[i].nó].nome} = ${apoios[i].y}`
+            p.innerText = `V${nós[apoios[i].nó].nome} = ${apoios[i].y}N`
             div.appendChild(p);
             j++;
         }
@@ -685,22 +699,30 @@ function calcular(){
            apoios[i].x = reacoes_apoios[j][0];
            
            p = document.createElement('p');
-           p.innerText = `H${nós[apoios[i].nó].nome} = ${apoios[i].x}`
+           p.innerText = `H${nós[apoios[i].nó].nome} = ${apoios[i].x}N`
            div.appendChild(p);
            j++
         }
         if(apoios[i].Mo == undefined){
             apoios[i].Mo = reacoes_apoios[j][0];
             p = document.createElement('p');
-            p.innerText = `Mo${nós[apoios[i].nó].nome} = ${apoios[i].Mo}`;
+            p.innerText = `Mo${nós[apoios[i].nó].nome} = ${apoios[i].Mo}N`;
             div.appendChild(p);
             j++;
          }
          nós[apoios[i].nó].forcas.push(apoios[i])
     }
 
-    let membrosx_y =  reacoes_membros();
-    console.log(membrosx_y);
+    let reacoes_calculadas =  reacoes_membros();
+    console.log(reacoes_calculadas);
+    
+    j = 0
+    for(i = 0;i < membros.length;i++){
+        p = document.createElement('p');
+        p.innerText = ` ${membros[i].nome} = ${reacoes_calculadas[j][0]}N`;
+        j++
+        div.appendChild(p);
+    }
     
     
 }
