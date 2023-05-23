@@ -686,6 +686,7 @@ function calcular(){
     reacoes_apoios = calc_apoios();
     let j = 0;
     let div = document.getElementById("resultados");
+    div.style.display = "block";
     let p;
     for(let i = 0;i< apoios.length; i++){
         if(apoios[i].y == undefined){

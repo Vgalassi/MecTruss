@@ -79,3 +79,12 @@ select{
     height: 25px;
     margin-bottom: 5px;
 }
+
+.resultados{
+    padding: 10px;
+    display: none;
+    margin: auto;
+    font-size: 25px;
+    width: 50%;
+    border-radius: 15px;
+}
