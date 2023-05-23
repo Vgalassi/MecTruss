@@ -6,18 +6,24 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="styles.css">
         <title>Truss-Calculator</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans&display=swap" rel="stylesheet">
+
     </head>
     <body>
-        <p>Truss Calculator</p>
+        <p style="margin: 65px">Truss Calculator</p>
         <div class="container">
             <section>
-                <div class="componentes">
-                    <p class="semititle">Componentes</p>
+                <div class="componentes area_1">
+                    <p class="semititle" style="border-bottom: solid #bbbec2; padding-bottom: 18px; border-width: 2px">Componentes</p>
                     <div id="nós_display">
-                        <p>Nós:</p>
 
-                </div>
+                    </div>
             </div>
+        </section>
+        <section>
+            <canvas id="grafico" class="grafico" width="840" height="440"></canvas>
         </section>
         <section>
             <div class="componentes">
@@ -25,38 +31,60 @@
                 <select name="Adicionar Componente" onchange="trocar(value)" >
                     <option value="nósdiv" >Nós</option>
                     <option value="membrosdiv" >Membros</option>
-                    <option value="suportesdiv" >Bases</option>
-                    <option value="forçasdiv" >Forças</option>
+                    <option value="suportesdiv" >Apoios</option>
+                    <option value="forcasdiv" >Forças</option>
                 </select>
                 <div id="nósdiv" >
-                    <input id = "nome_nó" type="text" value="" placeholder="Nome">
+                    <input id = "nome_nó" type="text" value="" placeholder="Nome" >
                     <input id="nó_x" type="Number" placeholder="Componente X" >
                     <input id="nó_y" type="Number" placeholder="Componente Y" >
                     <button style="margin-top: 10px;" onclick="add_nó()">Adicionar</button>
                 </div>
                 <div id="membrosdiv" style="display: none;">
-                    <input type="text" value="" placeholder="Nome">
-                    <input type="Number" placeholder="Nó 1" >
-                    <input type="Number" placeholder="Nó 2" >
-                    <button style="margin-top: 10px;">Adicionar</button>
+                    
+                    <select name="Nó 1" class="nó_seletor" id="nó_seletor_membro1" >
+                        <option value="" selected disabled hidden>Nenhum nó selecionado</option>
+                    </select>
+                    <select name="Nó 2" id="nó_seletor_membro2" class="nó_seletor">
+                        <option value="" selected disabled hidden>Nenhum nó selecionado</option>
+                    </select>
+                    <button onclick="add_membro()" style="margin-top: 10px;">Adicionar</button>
                 </div>
-                <div id="forçasdiv" style="display: none;">
-                    <input type="text" value="" placeholder="Nó">
-                    <input type="Number" placeholder="Magnetude X" >
-                    <input type="Number" placeholder="Magnetude Y" >
-                    <button style="margin-top: 10px;">Adicionar</button>
+                <div id="forcasdiv" style="display: none;">
+                    <select name="Nó 1" class="nó_seletor" id="nó_seletor_forca">
+                        <option value="" selected disabled hidden>Nenhum nó selecionado</option>
+                    </select>
+                    <input id="força_x" type="Number" placeholder="Magnetude X" >
+                    <input id = "força_y" type="Number" placeholder="Magnetude Y" >
+                    <button style="margin-top: 10px;" onclick="add_forca()">Adicionar</button>
                 </div>
                 <div id="suportesdiv" style="display: none;">
-                    <input type="text" value="" placeholder="Nome">
-                    <input type="Number" placeholder="Nó" >
-                    <input type="Number" placeholder="Tipo" >
-                    <button style="margin-top: 10px;">Adicionar</button>
+        
+                    <select name="Nó 1" class="nó_seletor"id="nó_seletor_apoio" >
+                        <option value="" selected disabled hidden>Nenhum nó selecionado</option>
+                    </select>
+                    <select name="Apoios"  id="tipo_seletor" >
+                        <option value="" selected disabled hidden>Nenhum tipo selecionado</option>
+                        <option value="1" >Móvel</option>
+                        <option value="2" >Fixo</option>
+                        <option value="3" >Engaste</option>
+                    </select>
+                    <button style="margin-top: 10px;" onclick="add_apoio()">Adicionar</button>
                 </div>
                 
 
             </div>
+            <button style="background-color: #185a11; width: 100px; height: 40px;" onclick="calcular()">Calcular</button>
         </section>
     </div>
+    <div style="display: none;" >
+        <img src="images/engastamento.png"   alt="" id="engastamento">
+        <img src="images/fixo.png" alt=""   id="fixo">
+        <img src="images/movel.png"   alt="" id="movel">
+    </div>
+    <div id="resultados" style="background: white; color: black;" ></div>
 </body>
+
 <script src="main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@10/lib/browser/math.js"></script>
 </html>
