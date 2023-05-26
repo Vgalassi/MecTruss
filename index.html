@@ -12,9 +12,20 @@
 
     </head>
     <body>
-        <p style="margin: 65px">Truss Calculator</p>
+        <header class = "header">
+            <h1><a href="/">Truss Calculator</a></h1>
+            <nav>
+                <ul class="menu">
+
+                   
+                </ul>
+            </nav>
+        </header>
+
+
+        
         <div class="container">
-            <section>
+            <section style="width: 20%;">
                 <div class="componentes area_1">
                     <p class="semititle" style="border-bottom: solid #bbbec2; padding-bottom: 18px; border-width: 2px">Componentes</p>
                     <div id="nós_display">
@@ -22,11 +33,11 @@
                     </div>
             </div>
         </section>
-        <section>
-            <canvas id="grafico" class="grafico" width="840" height="440"></canvas>
+        <section style="height: 100%; width: 54%;">
+            <canvas id="grafico" class="grafico"></canvas>
         </section>
-        <section>
-            <div class="componentes">
+        <section style="width: 20%; height: 60%;">
+            <div class="componentes" style="height: 60%;">
                 <p class="semititle">Adicionar</p>
                 <select name="Adicionar Componente" onchange="trocar(value)" >
                     <option value="nósdiv" >Nós</option>
@@ -82,7 +93,8 @@
         <img src="images/fixo.png" alt=""   id="fixo">
         <img src="images/movel.png"   alt="" id="movel">
     </div>
-    <div id="resultados" style="background: white; color: black;" ></div>
+    <div class="resultados" id="resultados" style="background: white; color: black;" >
+    <p>Resultados:</p></div>
 </body>
 
 <script src="main.js"></script>

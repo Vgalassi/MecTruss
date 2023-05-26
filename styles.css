@@ -1,12 +1,52 @@
+.header{
+    background-color: #1817177e;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 8px;
+    align-items: center;
+    margin-bottom: 50px;
+    
+}
+a{
+    text-decoration: none;
+    color: white;
+}
+.menu{
+    display: flex;
+}
+
+.menu li{
+    margin-left: 20px;
+}
+
+.menu li a{
+    display: block;
+    padding: 10px;
+}
+h1{
+    margin-left: 20px;
+    font-size: 40px;
+}
+
 body{
     color: rgb(229, 236, 241);
     background: #1c2533;
     text-align: center;
     font-family: 'Instrument Sans', sans-serif;
-    
     font-size: 50pt;
+    margin: 0;
 
 }
+ul,li {
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+    font-size:  1.2rem;
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+}
+    
 p{
     margin:10px
 }
@@ -14,22 +54,22 @@ p{
     background: white;
     border-radius: 10px;
     padding: 30px;
-    width: 500px;
+    
     box-shadow: 3px 3px 10px rgba(0, 0, 0, 363);
     color: black;
     font-size: 20px;
-    width: 240px;
+    
 
 }
 
 .area_1{
     overflow-y: auto;
-    max-width: 240px;
-    min-width: 240px;
-    min-height: 456px;
-    max-height: 440px;
+    height: 80%;
+    max-height: 60%;
+   
 }
 .container{
+    
     color: rgb(49, 85, 245);
     display: flex;
     justify-content: space-between;
@@ -50,15 +90,18 @@ p{
     background: white;
     border: 1px solid #aaa;
     border-radius: 15px;
-    height: 515px;
+    height: 100%;
+    width: 100%;
     border: none;
     overflow: hidden;
+    cursor: crosshair;
     
     
 }
 
 input{
-    height: 12px;
+    height: 10%;
+    width: 70%;
     padding: 4px;
     margin: 2px
     
@@ -73,9 +116,22 @@ button{
     border: none;
 
 }
+.componentes button{
+    width: 50%;
+}
+
 
 select{
-    width: 75%;
-    height: 25px;
+    width: 70%;
+    height: 15%;
     margin-bottom: 5px;
+}
+
+.resultados{
+    padding: 10px;
+    display: none;
+    margin: auto;
+    font-size: 25px;
+    width: 50%;
+    border-radius: 15px;
 }
