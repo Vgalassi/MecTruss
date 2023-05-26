@@ -54,22 +54,22 @@ p{
     background: white;
     border-radius: 10px;
     padding: 30px;
-    width: 500px;
+    
     box-shadow: 3px 3px 10px rgba(0, 0, 0, 363);
     color: black;
     font-size: 20px;
-    width: 240px;
+    
 
 }
 
 .area_1{
     overflow-y: auto;
-    max-width: 240px;
-    min-width: 240px;
-    min-height: 456px;
-    max-height: 440px;
+    height: 80%;
+    max-height: 60%;
+   
 }
 .container{
+    
     color: rgb(49, 85, 245);
     display: flex;
     justify-content: space-between;
@@ -90,15 +90,18 @@ p{
     background: white;
     border: 1px solid #aaa;
     border-radius: 15px;
-    height: 515px;
+    height: 100%;
+    width: 100%;
     border: none;
     overflow: hidden;
+    cursor: crosshair;
     
     
 }
 
 input{
-    height: 12px;
+    height: 10%;
+    width: 70%;
     padding: 4px;
     margin: 2px
     
@@ -113,10 +116,14 @@ button{
     border: none;
 
 }
+.componentes button{
+    width: 50%;
+}
+
 
 select{
-    width: 75%;
-    height: 25px;
+    width: 70%;
+    height: 15%;
     margin-bottom: 5px;
 }
 

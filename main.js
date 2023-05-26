@@ -1,7 +1,6 @@
 
 ///Vetor utilizado para armazenar nós
 let nós = [];
-let nós_id = 0;
 //Vetor utilizado para armazenar apoios
 let apoios = [];
 //Vetor carregando forças x/y
@@ -18,6 +17,20 @@ let apoios_reacoes_count = 0;
 ///Carrega o canvas principal
 let grafico = document.getElementById('grafico');
 let gtx = grafico.getContext('2d');
+
+let apoios_id = 0;
+
+
+
+let scale = 4; 
+
+
+  let style = getComputedStyle(grafico);
+  grafico.style.width = style.width;
+  grafico.style.height = style.height;
+  grafico.width = parseInt(style.width) * scale;
+  grafico.height = parseInt(style.height) * scale;
+
 
 
 
@@ -43,9 +56,156 @@ function trocar(id){
 }
 
 
+function draw(){
+    let limite_x = [nós[0].x,nós[0].x]
+    let limite_y = [nós[0].y,nós[0].y]
+
+    altura = grafico.height
+    largura = grafico.width
+
+
+    gtx.clearRect(0, 0, grafico.width, grafico.height);
+
+    for(let i = 0;i<nós.length;i++){
+        if(nós[i].x<limite_x[0]){
+            limite_x[0] = nós[i].x
+        }else if( nós[i].x>limite_x[1]){
+            limite_x[1] = nós[i].x
+        }
+        if(nós[i].y<limite_y[0]){
+            limite_y[0] = nós[i].y
+        }else if( nós[i].y>limite_y[1]){
+            limite_y[1] = nós[i].y
+        }
+    }
+
+   
+
+    let coordenadas = [,]
+    let xforca,yforca
+    
+    for(i = 0;i<nós.length;i++){
+        if(limite_x[1]-limite_x[0] == 0){
+           coordenadas[0] = 0.1 * largura
+        }else{
+        coordenadas[0] = 0.1*largura + (0.8 * largura) * ((nós[i].x- limite_x[0])/(limite_x[1]-limite_x[0]));
+        }
+        if(limite_y[1]-limite_y[0] == 0){
+            coordenadas[1] = 0.9*altura;
+        }else{
+        coordenadas[1] = altura - (0.1*altura + (0.8 * altura) * ((nós[i].y- limite_y[0])/(limite_y[1]-limite_y[0])));
+        }
+        
+        gtx.beginPath();
+        gtx.arc(coordenadas[0],coordenadas[1], 0.005*largura,0,2 * Math.PI);
+        gtx.strokeStyle = '#00000';
+        gtx.fill();
+        gtx.stroke();
+
+        
+        gtx.font = `${0.05*altura}px Arial`;
+        gtx.textAlign = "center";
+        gtx.fillText(nós[i].nome,coordenadas[0],coordenadas[1]-0.03* altura);
+        let img;
+        for(let j = 0;j<nós[i].forcas.length;j++){
+           
+            xforca = coordenadas[0];
+            yforca = coordenadas[1];
+            if(nós[i].forcas[j].x>0){
+                xforca += 0.05 * largura;
+                
+            }else if(nós[i].forcas[j].x<0){
+                xforca -= 0.05 * largura;
+                
+            }
+            if(nós[i].forcas[j].y>0){
+                yforca -= 0.1 * altura;
+            }else if(nós[i].forcas[j].y<0){
+                yforca += 0.05 * altura;
+                
+            }
+            
+            
+            
+            gtx.beginPath();
+            gtx.strokeStyle = '#E60d11';
+            gtx.moveTo(coordenadas[0],coordenadas[1]);
+            gtx.lineTo(xforca,yforca);
+            gtx.lineWidth = altura * 0.005;
+            gtx.stroke();
+            
+            //Calculando o valor da força
+            let força_texto = Math.sqrt(nós[i].forcas[j].x**2 + nós[i].forcas[j].y**2);
+            if(força_texto%1 != 0){
+                força_texto = força_texto.toFixed(2);
+            }
+            força_texto += 'N';
+            gtx.font =  `${0.05*altura}px Arial`;
+            gtx.fillText(força_texto,xforca,yforca - 0.03 * altura);
+            
+            //Desenhando a seta do vetor
+            
+            gtx.lineTo(xforca - 20, yforca - 20); // primeira linha diagonal da ponta da seta
+            gtx.moveTo(xforca, yforca); // move o cursor de volta para o ponto final da linha
+            gtx.lineTo(xforca - 20, yforca + 20); // segunda linha diagonal da ponta da seta
+            gtx.strokeStyle = '#E60d11';
+            gtx.stroke();
+        }
+        
+        gtx.strokeStyle = '#000000';
+        for(j = 0;j<apoios.length;j++){
+            if(apoios[j].nó == i){
+               
+                switch (apoios[j].tipo){
+                    case 1:
+                        img = document.getElementById("movel");
+                        break;
+                    case 2:
+                        img = document.getElementById("fixo");
+                        break;
+                    case 3:  
+                        img = document.getElementById("engastamento"); 
+                        break;
+                }
+                gtx.drawImage(img, coordenadas[0]-largura*0.025, coordenadas[1],largura*0.05,altura*0.08);
+            
+            }
+        }
+    }
+    let k;
+    coordenadas = [,,,]
+    for(i = 0;i<membros.length;i++){
+        k = 0;
+        for(j = 0;j<membros[i].nós.length;j++){
+            if(limite_x[1]-limite_x[0] == 0){
+                coordenadas[k] = 0.1 * largura
+
+            }else{
+            coordenadas[k] = 0.1*largura + (0.8 * largura) * ((nós[membros[i].nós[j]].x- limite_x[0])/(limite_x[1]-limite_x[0]));
+            }
+            k++
+            if(limite_y[1]-limite_y[0] == 0){
+                coordenadas[k] = 0.9*altura;
+            }else{
+                coordenadas[k] = altura - (0.1*altura + (0.8 * altura) * ((nós[membros[i].nós[j]].y- limite_y[0])/(limite_y[1]-limite_y[0])));
+            }
+            k++
+        }
+
+        
+        gtx.moveTo(coordenadas[0],coordenadas[1]);
+        gtx.lineTo(coordenadas[2],coordenadas[3]);
+        gtx.lineWidth = altura * 0.004;
+        gtx.stroke();
+    }
+
+}
+
+
+
 
 /*
-Função add
+Função add nó
 Paramêtros: n/a
 Retorno: n/a
 
@@ -82,7 +242,6 @@ function add_nó(){
     let forcas = []
     let new_nó = {
         nome: nome_nó.value,
-        id: nós_id,
         x: Number(nó_x.value),
         y: Number(nó_y.value),
         forcas: forcas,
@@ -91,24 +250,16 @@ function add_nó(){
 
     }
 
-    nós_id++;
+    //Colocando nó no vetor de nós
+    nós.push(new_nó);
 
 
     ///Desenhando o nó no canvas
-    gtx.beginPath();
-    gtx.arc(nó_x.value*40+40,400-nó_y.value*20,3,0,2 * Math.PI);
-    gtx.strokeStyle = '#00000';
-    gtx.fill();
-    gtx.stroke();
-    
-    gtx.font = "10px Arial";
-    gtx.textAlign = "center";
-    gtx.fillText(nome_nó.value,nó_x.value*40+40,390-nó_y.value*20);
+    draw();
    
 
 
     ///Colocando um novo parágrafo na div de componentes
-    nós.push(new_nó);
     let nós_display = document.getElementById('nós_display');
     let display_newnó = document.createElement('p');
     display_newnó.style.borderBottom =  "solid #bbbec2";
@@ -118,7 +269,7 @@ function add_nó(){
     let option_nó = document.createElement('option');
     let nó_seletores = document.getElementsByClassName('nó_seletor');
     
-    display_newnó.setAttribute('id',nome_nó.value);
+    display_newnó.setAttribute('id','n'+nome_nó.value);
     display_newnó.innerText = `${nome_nó.value} (${nó_x.value},${nó_y.value})`;
     option_nó.innerText = nome_nó.value;
     option_nó.value = nome_nó.value;
@@ -208,54 +359,11 @@ function add_forca(){
     forca_id++;
     
 
-    ///Conferindo as coordenadas para saber a direção do vetor
-    let coordenadasx = nós[i].x;
-    let coordenadasy = nós[i].y;
-    let força_texto;
-    if(new_forca.x>0){
-        coordenadasx += 1;
-        
-    }else if(new_forca.x<0){
-        coordenadasx -= 1;
-        
-    }
-    if(new_forca.y>0){
-        coordenadasy += 2;
-    }else if(new_forca.y<0){
-        coordenadasy -= 2;
-        
-    }
-    
-    gtx.strokeStyle = '#E60d11';
-    // Desenhando vetor no canvas e colocando o valor de sua força
-    coordenadasx = coordenadasx * 40 + 40;
-    coordenadasy = 400 - coordenadasy*20
-    
-    gtx.beginPath();
-    gtx.moveTo(nós[i].x*40+40,400 - nós[i].y*20);
-    gtx.lineTo(coordenadasx,coordenadasy);
-    
-    //Calculando o valor da força
-    força_texto = Math.sqrt(new_forca.x**2 + new_forca.y**2);
-    if(força_texto%1 != 0){
-        força_texto = força_texto.toFixed(2);
-    }
-    força_texto += 'N';
-
-    gtx.font = "10px Arial";
-    gtx.fillText(força_texto,coordenadasx+15,coordenadasy+15);
-
-    //Desenhando a seta do vetor
-    const angle = Math.atan2(coordenadasy - (400 - nós[i].y*20), coordenadasx - (nós[i].x*40+40));
-    gtx.lineTo(coordenadasx - 10 * Math.cos(angle - Math.PI / 6), coordenadasy - 10 * Math.sin(angle - Math.PI / 6));
-    gtx.moveTo(coordenadasx, coordenadasy);
-    gtx.lineTo(coordenadasx - 10 * Math.cos(angle + Math.PI / 6), coordenadasy - 10 * Math.sin(angle + Math.PI / 6));
-    gtx.strokeStyle = '#E60d11';
-    gtx.stroke();
+    draw();
 
     //Colocando um p contendo as informações da força na div de componentes
     let new_forca_display = document.createElement('p');
-    let p_nó = document.getElementById(nós[i].nome);
+    let p_nó = document.getElementById('n'+nós[i].nome);
 
     new_forca_display.innerText = ` F${new_forca.nome}: (${new_forca.x},${new_forca.y})`;
     new_forca_display.style.fontSize = "18px"
@@ -336,24 +444,18 @@ function add_membro(){
 
     
 
-    //Desenhar um linha ligando os dois nós para indicar o membro
-    gtx.strokeStyle = '#000000';
-    gtx.moveTo(nós[i].x*40+40,400 - nós[i].y*20);
-    gtx.lineTo(nós[j].x*40+40,400 - nós[j].y*20);
-    gtx.stroke();
-
 
     //Colocar as reações no vetor de forças  dos dois nós
     nós[i].reacoes.push(new_membro);
     nós[j].reacoes.push(new_membro);
     membros.push(new_membro);
     
-
+    draw();
 
     //Colocar um p com nome dos membros na div de componentes
     let new_membro_display = document.createElement('p');
-    let p_nó = document.getElementById(nós[i].nome);
-    let p_nó2 = document.getElementById(nós[j].nome);
+    let p_nó = document.getElementById('n' + nós[i].nome);
+    let p_nó2 = document.getElementById('n' + nós[j].nome);
     new_membro_display.innerText = `Membro ${new_membro.nome}`;
     new_membro_display.style.fontSize = "18px"
     p_nó.appendChild(new_membro_display);
@@ -381,11 +483,22 @@ function add_apoio(){
     let tipo_selecionado = document.getElementById('tipo_seletor').value;
     i = find_nó(nó_selecionado);
     
+    for(let j = 0;j<apoios.length;j++){
+        if(apoios[j].nó == i){
+            let apoio_duplicado = document.getElementById('a'+ apoios[j].id);
+            apoios_reacoes_count -= apoios[j].tipo
+            apoio_duplicado.remove();
+            apoios.splice(j,1);
+    
+        }
+    }
+
 
     //Criando nova variável do apoio
     let new_apoio = {
         nó: i,
         tipo: null,
+        id: apoios_id,
         x: 0,
         y: 0,
         Mo: 0
@@ -394,7 +507,7 @@ function add_apoio(){
 
     let texto;
     let img;
-    let inc = 0;
+
     //Colocando valores de acordo com o tipo de apoio selecionado
     switch (tipo_selecionado){
         case '1': //Apoio móvel, apenas uma reação vertical
@@ -402,7 +515,6 @@ function add_apoio(){
             new_apoio.y = undefined;
             new_apoio.tipo = 1;
             texto = `V${nós[i].nome}`
-            img = document.getElementById("movel");
             break;
         case '2'://Apoio fixo, uma reação vertical e horizontal
             apoios_reacoes_count+= 2;
@@ -410,7 +522,7 @@ function add_apoio(){
             new_apoio.x = undefined;
             new_apoio.tipo = 2;
             texto = `V${nós[i].nome} H${nós[i].nome}`
-            img = document.getElementById("fixo");
+           
             break;
         case '3': //Apoio de engastamento, reação vertical,horizontal e de momento
             apoios_reacoes_count+= 3;
@@ -419,29 +531,28 @@ function add_apoio(){
             new_apoio.Mo = undefined;
             new_apoio.tipo = 3;
             texto = ` V${nós[i].nome} H${nós[i].nome} Mo${nós[i].nome}`
-            img = document.getElementById("engastamento");
-            inc = img.height/2;
             break;
     }
     //Coloca o novo apoio no vetor de apoios
     apoios.push(new_apoio);
-    //Coloca a imagem do apoio no nó
-    gtx.drawImage(img, nós[i].x*40+40 - img.width/2, 400 - nós[i].y*20-inc);
-
+    draw(); 
+    
+    i = find_nó(nó_selecionado);
     //Cria um p na div de componentes com as reações do apoio
     let new_apoio_display = document.createElement('p');
-    let p_nó = document.getElementById(nós[i].nome);
+    let p_nó = document.getElementById('n'+nós[i].nome);
+    new_apoio_display.setAttribute('id','a'+apoios_id  );
     new_apoio_display.innerText = `Reações apoio ${texto}`;
     new_apoio_display.style.fontSize = "18px";
     p_nó.appendChild(new_apoio_display);
-
+    apoios_id++;
 
 }
 
 
 function calc_apoios(){
 
-
+    console.log(apoios);
 
     let centro;
     let k = 0;
@@ -538,15 +649,15 @@ function reacoes_membros(){
         //nós_índice[i][1++] = carrega endereços do membro
         nós_indice = Array(nós_func.length).fill().map(() => Array(1).fill(0));
         
-        console.log(nós_indice);
-        console.log(membros_func);
+
         for(i = 0;i<membros_func.length;i++){
             nós_indice[membros_func[i].nós[0]][0]++;
             nós_indice[membros_func[i].nós[0]].push(i);
             nós_indice[membros_func[i].nós[1]][0]++;
             nós_indice[membros_func[i].nós[1]].push(i);
         }
-        console.log(nós_indice);
+       
+
         //Escolhe o nó com o maior número de membros
         let maior_nó = nós_indice[0];
         j = 0;
@@ -557,11 +668,10 @@ function reacoes_membros(){
             }
         }
         
-        console.log(maior_nó);
+        
         //maior_nó[0] vai carregar endereço do nó
         maior_nó[0]= j;
-        console.log(nós_func);
-        console.log(maior_nó);
+     
         
         
         let flag = false;
@@ -600,8 +710,7 @@ function reacoes_membros(){
                 }
             }
             
-            console.log(m)
-            console.log(k)
+        
             //Membro deitado
             if(nós_func[maior_nó[0]].reacoes[i].y != undefined && flagx == true){
                 
@@ -661,16 +770,14 @@ function reacoes_membros(){
             j++
         }
         k+= 2;
-        console.log(`O VALOR DE K NO FINAL DO LOOP É   ${k}`);
+       
         
         nós_func[maior_nó[0]].utilizado = true;
-        console.log(matriz_1);
-        console.log(matriz_2);
+ 
     }
     
     
-    console.log(matriz_1);
-    console.log(matriz_2);
+
     return math.lusolve(matriz_1, matriz_2);
 }
 
@@ -715,7 +822,7 @@ function calcular(){
     }
 
     let reacoes_calculadas =  reacoes_membros();
-    console.log(reacoes_calculadas);
+   
     
     j = 0
     for(i = 0;i < membros.length;i++){
