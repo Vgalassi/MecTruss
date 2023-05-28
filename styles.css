@@ -63,9 +63,9 @@ p{
 }
 
 .area_1{
-    overflow-y: auto;
+    box-sizing: border-box;
     height: 80%;
-    max-height: 60%;
+    overflow-y: auto;
    
 }
 .container{
@@ -75,6 +75,7 @@ p{
     justify-content: space-between;
     margin-left: 30px;
     margin-right: 30px;
+    max-height: 80%vw;
 }
 
 .semititle{

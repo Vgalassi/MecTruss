@@ -59,13 +59,13 @@ function trocar(id){
 function draw(){
     let limite_x = [nós[0].x,nós[0].x]
     let limite_y = [nós[0].y,nós[0].y]
-
+    
     altura = grafico.height
     largura = grafico.width
-
-
+    
+    
     gtx.clearRect(0, 0, grafico.width, grafico.height);
-
+    
     for(let i = 0;i<nós.length;i++){
         if(nós[i].x<limite_x[0]){
             limite_x[0] = nós[i].x
@@ -78,10 +78,37 @@ function draw(){
             limite_y[1] = nós[i].y
         }
     }
-
-   
-
-    let coordenadas = [,]
+    
+    let k;
+    let coordenadas = [,,,]
+    gtx.strokeStyle = '#00000';
+    for(i = 0;i<membros.length;i++){
+        k = 0;
+        for(j = 0;j<membros[i].nós.length;j++){
+            if(limite_x[1]-limite_x[0] == 0){
+                coordenadas[k] = 0.1 * largura
+    
+            }else{
+            coordenadas[k] = 0.1*largura + (0.8 * largura) * ((nós[membros[i].nós[j]].x- limite_x[0])/(limite_x[1]-limite_x[0]));
+            }
+            k++
+            if(limite_y[1]-limite_y[0] == 0){
+                coordenadas[k] = 0.9*altura;
+            }else{
+                coordenadas[k] = altura - (0.1*altura + (0.8 * altura) * ((nós[membros[i].nós[j]].y- limite_y[0])/(limite_y[1]-limite_y[0])));
+            }
+            k++
+        }
+    
+        
+        gtx.moveTo(coordenadas[0],coordenadas[1]);
+        gtx.lineTo(coordenadas[2],coordenadas[3]);
+        gtx.lineWidth = altura * 0.004;
+        gtx.stroke();
+    }
+    
+    
+    coordenadas = [,]
     let xforca,yforca
     
     for(i = 0;i<nós.length;i++){
@@ -107,6 +134,7 @@ function draw(){
         gtx.textAlign = "center";
         gtx.fillText(nós[i].nome,coordenadas[0],coordenadas[1]-0.03* altura);
         let img;
+        gtx.strokeStyle = '#E60d11';
         for(let j = 0;j<nós[i].forcas.length;j++){
            
             xforca = coordenadas[0];
@@ -121,14 +149,14 @@ function draw(){
             if(nós[i].forcas[j].y>0){
                 yforca -= 0.1 * altura;
             }else if(nós[i].forcas[j].y<0){
-                yforca += 0.05 * altura;
+                yforca += 0.1 * altura;
                 
             }
             
             
             
             gtx.beginPath();
-            gtx.strokeStyle = '#E60d11';
+            
             gtx.moveTo(coordenadas[0],coordenadas[1]);
             gtx.lineTo(xforca,yforca);
             gtx.lineWidth = altura * 0.005;
@@ -141,15 +169,18 @@ function draw(){
             }
             força_texto += 'N';
             gtx.font =  `${0.05*altura}px Arial`;
-            gtx.fillText(força_texto,xforca,yforca - 0.03 * altura);
+            gtx.fillText(força_texto,xforca + 0.03 * largura,yforca - 0.03 * altura);
             
             //Desenhando a seta do vetor
-            
-            gtx.lineTo(xforca - 20, yforca - 20); // primeira linha diagonal da ponta da seta
-            gtx.moveTo(xforca, yforca); // move o cursor de volta para o ponto final da linha
-            gtx.lineTo(xforca - 20, yforca + 20); // segunda linha diagonal da ponta da seta
+            let angle = Math.atan2(yforca - coordenadas[1], xforca - coordenadas[0]);
+            gtx.beginPath();
             gtx.strokeStyle = '#E60d11';
+            gtx.moveTo(xforca - altura*0.02 * Math.cos(angle - Math.PI / 6), yforca - largura*0.02 * Math.sin(angle - Math.PI / 6));
+            gtx.lineTo(xforca,yforca );
+            gtx.lineTo(xforca - altura*0.02 * Math.cos(angle + Math.PI / 6), yforca - largura*0.02 * Math.sin(angle + Math.PI / 6));
             gtx.stroke();
+           
+            
         }
         
         gtx.strokeStyle = '#000000';
@@ -171,32 +202,6 @@ function draw(){
             
             }
         }
-    }
-    let k;
-    coordenadas = [,,,]
-    for(i = 0;i<membros.length;i++){
-        k = 0;
-        for(j = 0;j<membros[i].nós.length;j++){
-            if(limite_x[1]-limite_x[0] == 0){
-                coordenadas[k] = 0.1 * largura
-
-            }else{
-            coordenadas[k] = 0.1*largura + (0.8 * largura) * ((nós[membros[i].nós[j]].x- limite_x[0])/(limite_x[1]-limite_x[0]));
-            }
-            k++
-            if(limite_y[1]-limite_y[0] == 0){
-                coordenadas[k] = 0.9*altura;
-            }else{
-                coordenadas[k] = altura - (0.1*altura + (0.8 * altura) * ((nós[membros[i].nós[j]].y- limite_y[0])/(limite_y[1]-limite_y[0])));
-            }
-            k++
-        }
-
-        
-        gtx.moveTo(coordenadas[0],coordenadas[1]);
-        gtx.lineTo(coordenadas[2],coordenadas[3]);
-        gtx.lineWidth = altura * 0.004;
-        gtx.stroke();
     }
 
 }
@@ -410,8 +415,8 @@ function add_membro(){
     let nome_membro = nós[i].nome + nós[j].nome;
 
     //Verificando se os nós já tem um membro
-    for(let k = 0;k< nós[i].forcas.length;k++){
-        if(nós[i].forcas[k].nome == nome_membro){
+    for(let k = 0;k< nós[i].reacoes.length;k++){
+        if(nós[i].reacoes[k].nome == nome_membro){
             return window.alert('Já existe um membro nesses nós')
         }
     }
@@ -459,7 +464,9 @@ function add_membro(){
     new_membro_display.innerText = `Membro ${new_membro.nome}`;
     new_membro_display.style.fontSize = "18px"
     p_nó.appendChild(new_membro_display);
-    p_nó2.appendChild(new_membro_display.cloneNode(true));
+    let new_membro_display_2 = new_membro_display.cloneNode(true)
+    new_membro_display_2.innerText = `Membro ${nós[j].nome+nós[i].nome}`;
+    p_nó2.appendChild(new_membro_display_2);
 
 
 
@@ -557,14 +564,15 @@ function calc_apoios(){
     let centro;
     let k = 0;
     let resultados = Array(apoios_reacoes_count).fill().map(() => Array(1).fill(0));
-    aux = nós[apoios[0].nó]
+    aux = apoios[0]
     for(let i = 0;i<apoios.length;i++){
-        if(apoios[i].tipo>aux){
-            aux = nós[apoios[i].nó];
+        if(apoios[i].tipo>aux.tipo){
+            aux = apoios[i];
         }
     }
+    aux = nós[aux.nó]
     centro = aux;
-    
+    console.log(centro);
 
     if(apoios_reacoes_count == 3){
         k = 1;
@@ -577,7 +585,7 @@ function calc_apoios(){
             resultados[apoios_reacoes_count-k-1][0] -= nós[i].forcas[j].x;
             }
             if(apoios_reacoes_count == 3 || (apoios.length == 2 && apoios_reacoes_count == 2)){
-                resultados[apoios_reacoes_count-1][0] -= nós[i].forcas[j].x * (nós[i].y - centro.y) + nós[i].forcas[j].y * (nós[i].x - centro.x);
+                resultados[apoios_reacoes_count-1][0] -= nós[i].forcas[j].x * (centro.y - nós[i].y ) + nós[i].forcas[j].y * (nós[i].x - centro.x);
             }
     }}
    
@@ -612,8 +620,9 @@ function calc_apoios(){
     }
     
 }
-
-
+    console.log(matriz1);
+    console.log(resultados);
+    console.log(centro.nome)
     return math.lusolve(matriz1, resultados);
 }
 
@@ -657,10 +666,10 @@ function reacoes_membros(){
             nós_indice[membros_func[i].nós[1]].push(i);
         }
        
-
-        //Escolhe o nó com o maior número de membros
-        let maior_nó = nós_indice[0];
         j = 0;
+        //Escolhe o nó com o maior número de membros
+        let maior_nó = [-1];
+        
         for(i = 0;i<nós_indice.length;i++){
             if(nós_indice[i][0]>maior_nó[0] && nós_func[i].utilizado == false){
                 maior_nó = nós_indice[i];
@@ -668,6 +677,12 @@ function reacoes_membros(){
             }
         }
         
+        for(i= 0;i<nós_indice.length;i++){
+            if(nós[i].forcas.length>0 && nós_func[i].utilizado == false){
+                maior_nó = nós_indice[i];
+                j = i
+            }
+        }
         
         //maior_nó[0] vai carregar endereço do nó
         maior_nó[0]= j;
@@ -681,6 +696,7 @@ function reacoes_membros(){
         if(k+2>membros.length){
             n = 0;
             flagy = false
+            console.log('olha');
             for(j = 0;j<nós_func[maior_nó[0]].reacoes;j++){
                     if(nós_func[maior_nó[0]].reacoes[j].nome == membros_func[0].nome){ 
                         if(nós_func[maior_nó[0]].reacoes[j].x == 0){
@@ -705,7 +721,7 @@ function reacoes_membros(){
             //Conferindo se o membro já foi colocado em outro nó
             //Se já estiver flag = true (colocar resultado negativo na matriz)
             for(j = 0;j<membros.length;j++){
-                if(matriz_1[j][m] == 1){
+                if(matriz_1[j][m] != 0){
                     flag = true;
                 }
             }
@@ -713,16 +729,18 @@ function reacoes_membros(){
         
             //Membro deitado
             if(nós_func[maior_nó[0]].reacoes[i].y != undefined && flagx == true){
-                
+                console.log('membro deitado')
                 if(flag == false){
                     matriz_1[k][m] = 1
+                    
                 }else{
                     matriz_1[k][m] = -1
+                    
                 }
             }
             //Membro de pé
             else if(nós_func[maior_nó[0]].reacoes[i].x != undefined && flagy == true){
-                
+                console.log('membro de pé');
                 if(flag == false){
                     matriz_1[k+n][m] = 1
                 }else{
@@ -730,16 +748,25 @@ function reacoes_membros(){
                 }
             }
             //Membro inclinado
-            else{
+            else if(nós_func[maior_nó[0]].reacoes[i].x == undefined && nós_func[maior_nó[0]].reacoes[i].y == undefined){
                 if(flag == false){
+                    if(flagx == true){
                     matriz_1[k][m] = math.cos(nós_func[maior_nó[0]].reacoes[i].angulo)
+                    }
+                    if(flagy == true){
                     matriz_1[k+n][m] = math.sin(nós_func[maior_nó[0]].reacoes[i].angulo)
+                    }
                 }else{
+                    if(flagx == true){
                     matriz_1[k][m] = -math.cos(nós_func[maior_nó[0]].reacoes[i].angulo)
+                    }
+                    if(flagy == true){
                     matriz_1[k+n][m] = -math.sin(nós_func[maior_nó[0]].reacoes[i].angulo)
+                    }
                 }
             }
-            
+            console.log(nós_func[maior_nó[0]].reacoes[i].nome);
+            flag = false
         }
         //Somando as forças para colocar na segunda matriz
         if(flagy == true && flagx == true){
@@ -773,12 +800,16 @@ function reacoes_membros(){
        
         
         nós_func[maior_nó[0]].utilizado = true;
- 
+        console.log(nós_func[maior_nó[0]].nome)
+        console.log(k);
     }
+    console.log(matriz_1);
+    console.log(matriz_2);
+    console.log(nós_func);
+    console.log(membros);
     
-    
-
-    return math.lusolve(matriz_1, matriz_2);
+    let results = [math.lusolve(matriz_1, matriz_2),matriz_1];
+    return results;
 }
 
 
@@ -790,10 +821,11 @@ function calcular(){
 
 
 
-    reacoes_apoios = calc_apoios();
     let j = 0;
     let div = document.getElementById("resultados");
     div.style.display = "block";
+    if(apoios.length!= 0){
+    reacoes_apoios = calc_apoios();
     let p;
     for(let i = 0;i< apoios.length; i++){
         if(apoios[i].y == undefined){
@@ -820,14 +852,14 @@ function calcular(){
          }
          nós[apoios[i].nó].forcas.push(apoios[i])
     }
-
+    }
     let reacoes_calculadas =  reacoes_membros();
    
     
     j = 0
     for(i = 0;i < membros.length;i++){
         p = document.createElement('p');
-        p.innerText = ` ${membros[i].nome} = ${reacoes_calculadas[j][0]}N`;
+        p.innerText = ` ${membros[i].nome} = ${reacoes_calculadas[0][j][0].toFixed(2)}N`;
         j++
         div.appendChild(p);
     }
