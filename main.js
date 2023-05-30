@@ -620,9 +620,7 @@ function calc_apoios(){
     }
     
 }
-    console.log(matriz1);
-    console.log(resultados);
-    console.log(centro.nome)
+
     return math.lusolve(matriz1, resultados);
 }
 
@@ -689,14 +687,13 @@ function reacoes_membros(){
      
         
         
-        let flag = false;
+       
         let flagx = true;
         let flagy = true;
         //Percorrendo todos os membros do maior nó
         if(k+2>membros.length){
             n = 0;
             flagy = false
-            console.log('olha');
             for(j = 0;j<nós_func[maior_nó[0]].reacoes;j++){
                     if(nós_func[maior_nó[0]].reacoes[j].nome == membros_func[0].nome){ 
                         if(nós_func[maior_nó[0]].reacoes[j].x == 0){
@@ -708,8 +705,9 @@ function reacoes_membros(){
         }
         
         for(i = 0;i<nós_func[maior_nó[0]].reacoes.length;i++){
-
-            
+            let negx = false
+            let negy = false
+            let nós_membros = nós_func[maior_nó[0]].reacoes[i].nós;
             //Definindo o m para colocar na matriz_1
             for(j = 0;j<membros.length;j++){
                 if(nós_func[maior_nó[0]].reacoes[i].nome == membros[j].nome){
@@ -720,17 +718,18 @@ function reacoes_membros(){
             
             //Conferindo se o membro já foi colocado em outro nó
             //Se já estiver flag = true (colocar resultado negativo na matriz)
-            for(j = 0;j<membros.length;j++){
-                if(matriz_1[j][m] != 0){
-                    flag = true;
-                }
+            if(nós_func[maior_nó[0]].x> nós_func[nós_membros[0]].x || nós_func[maior_nó[0]].x> nós_func[nós_membros[1]].x){
+                negx = true
+            }
+            if(nós_func[maior_nó[0]].y> nós_func[nós_membros[0]].y || nós_func[maior_nó[0]].y> nós_func[nós_membros[1]].y){
+                negy = true
             }
             
         
             //Membro deitado
             if(nós_func[maior_nó[0]].reacoes[i].y != undefined && flagx == true){
                 console.log('membro deitado')
-                if(flag == false){
+                if(negx == false){
                     matriz_1[k][m] = 1
                     
                 }else{
@@ -741,7 +740,7 @@ function reacoes_membros(){
             //Membro de pé
             else if(nós_func[maior_nó[0]].reacoes[i].x != undefined && flagy == true){
                 console.log('membro de pé');
-                if(flag == false){
+                if(negy == false){
                     matriz_1[k+n][m] = 1
                 }else{
                     matriz_1[k+n][m] = -1
@@ -749,24 +748,28 @@ function reacoes_membros(){
             }
             //Membro inclinado
             else if(nós_func[maior_nó[0]].reacoes[i].x == undefined && nós_func[maior_nó[0]].reacoes[i].y == undefined){
-                if(flag == false){
-                    if(flagx == true){
-                    matriz_1[k][m] = math.cos(nós_func[maior_nó[0]].reacoes[i].angulo)
+                
+                    if(flagx == true && negx == false){
+                    matriz_1[k][m] = Math.abs(math.cos(nós_func[maior_nó[0]].reacoes[i].angulo))
+                    console.log('xpositivo');
                     }
-                    if(flagy == true){
-                    matriz_1[k+n][m] = math.sin(nós_func[maior_nó[0]].reacoes[i].angulo)
+                    else if(flagx == true){
+                    matriz_1[k][m] = -Math.abs(math.cos(nós_func[maior_nó[0]].reacoes[i].angulo))
+                    console.log('xnegativo')
                     }
-                }else{
-                    if(flagx == true){
-                    matriz_1[k][m] = -math.cos(nós_func[maior_nó[0]].reacoes[i].angulo)
+                    if(flagy == true && negy == false){
+                    matriz_1[k+n][m] = Math.abs(math.sin(nós_func[maior_nó[0]].reacoes[i].angulo))
+                    console.log('ypositivo')
                     }
-                    if(flagy == true){
-                    matriz_1[k+n][m] = -math.sin(nós_func[maior_nó[0]].reacoes[i].angulo)
-                    }
+                    else if(flagy == true){
+                    matriz_1[k+n][m] = -Math.abs(math.sin(nós_func[maior_nó[0]].reacoes[i].angulo))
+                    console.log('ynegativo')
                 }
             }
+            console.log(negx);
+            console.log(negy);
             console.log(nós_func[maior_nó[0]].reacoes[i].nome);
-            flag = false
+            
         }
         //Somando as forças para colocar na segunda matriz
         if(flagy == true && flagx == true){
