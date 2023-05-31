@@ -24,13 +24,12 @@ let apoios_id = 0;
 
 let scale = 4; 
 
-
+//Definindo escala do canvas
   let style = getComputedStyle(grafico);
   grafico.style.width = style.width;
   grafico.style.height = style.height;
   grafico.width = parseInt(style.width) * scale;
   grafico.height = parseInt(style.height) * scale;
-
 
 
 
@@ -55,17 +54,32 @@ function trocar(id){
     
 }
 
+/*
+Funçao trocar
+Parâmetros: n/a
+Retorno: n/a
 
+Limpa o canvas desenha todos os componentes
+É calculado uma aproximação de onde os nó
+irão estar baseado na % de espaço que ele
+ocupa entre o maior e menor ponto
+
+
+
+*/
 function draw(){
+    //Váriaveis que carregarão coordenadas  do maior e menor ponto
     let limite_x = [nós[0].x,nós[0].x]
     let limite_y = [nós[0].y,nós[0].y]
-
+    
+    
     altura = grafico.height
     largura = grafico.width
-
-
+    
+    //Limpando canvas
     gtx.clearRect(0, 0, grafico.width, grafico.height);
-
+    
+    //Encontrando menor e maior ponto
     for(let i = 0;i<nós.length;i++){
         if(nós[i].x<limite_x[0]){
             limite_x[0] = nós[i].x
@@ -78,13 +92,50 @@ function draw(){
             limite_y[1] = nós[i].y
         }
     }
+    
+    let k;
+    let coordenadas = [,,,]
 
-   
-
-    let coordenadas = [,]
+    //Desenho dos membros
+    gtx.strokeStyle = '#00000';
+    for(i = 0;i<membros.length;i++){
+        k = 0;
+        for(j = 0;j<membros[i].nós.length;j++){
+            //Pegando as coordenadas de cada nó do membro
+            //Se o ponto for o ponto mínimo(x), ele estará no começo do canvas
+            if(limite_x[1]-limite_x[0] == 0){
+                coordenadas[k] = 0.1 * largura
+    
+            }else{
+            //Se não fazer o cálculo da sua posição
+            coordenadas[k] = 0.1*largura + (0.8 * largura) * ((nós[membros[i].nós[j]].x- limite_x[0])/(limite_x[1]-limite_x[0]));
+            }
+            k++
+            //Se o ponto for o ponto mínimo(y), ele estará no teto do canvas
+            if(limite_y[1]-limite_y[0] == 0){
+                coordenadas[k] = 0.9*altura;
+            }else{
+                coordenadas[k] = altura - (0.1*altura + (0.8 * altura) * ((nós[membros[i].nós[j]].y- limite_y[0])/(limite_y[1]-limite_y[0])));
+            }
+            k++
+        }
+    
+        //Desenhando o membro
+        gtx.moveTo(coordenadas[0],coordenadas[1]);
+        gtx.lineTo(coordenadas[2],coordenadas[3]);
+        gtx.lineWidth = altura * 0.004;
+        gtx.stroke();
+    }
+    
+    
+    //Começo do desenho das forças e nós
+    coordenadas = [,]
+    //Varivéis que carregam as coordenadas da "ponta" do vetor força
     let xforca,yforca
     
+    //Loop para todos os nós    
     for(i = 0;i<nós.length;i++){
+        //Encontrando as coordenadas do nó
         if(limite_x[1]-limite_x[0] == 0){
            coordenadas[0] = 0.1 * largura
         }else{
@@ -96,19 +147,23 @@ function draw(){
         coordenadas[1] = altura - (0.1*altura + (0.8 * altura) * ((nós[i].y- limite_y[0])/(limite_y[1]-limite_y[0])));
         }
         
+        //Desenhando o ponto do nó
         gtx.beginPath();
         gtx.arc(coordenadas[0],coordenadas[1], 0.005*largura,0,2 * Math.PI);
         gtx.strokeStyle = '#00000';
         gtx.fill();
         gtx.stroke();
 
-        
+        //Desenhando o texto do nó
         gtx.font = `${0.05*altura}px Arial`;
         gtx.textAlign = "center";
         gtx.fillText(nós[i].nome,coordenadas[0],coordenadas[1]-0.03* altura);
         let img;
+        gtx.strokeStyle = '#E60d11';
+        //Loop desenho das forças no nó
         for(let j = 0;j<nós[i].forcas.length;j++){
-           
+            
+            //definindo direção do vetor
             xforca = coordenadas[0];
             yforca = coordenadas[1];
             if(nós[i].forcas[j].x>0){
@@ -121,14 +176,13 @@ function draw(){
             if(nós[i].forcas[j].y>0){
                 yforca -= 0.1 * altura;
             }else if(nós[i].forcas[j].y<0){
-                yforca += 0.05 * altura;
+                yforca += 0.1 * altura;
                 
             }
             
-            
-            
+            //Desenhando linha
             gtx.beginPath();
-            gtx.strokeStyle = '#E60d11';
+            
             gtx.moveTo(coordenadas[0],coordenadas[1]);
             gtx.lineTo(xforca,yforca);
             gtx.lineWidth = altura * 0.005;
@@ -139,23 +193,27 @@ function draw(){
             if(força_texto%1 != 0){
                 força_texto = força_texto.toFixed(2);
             }
+            //Escrevendo o texto
             força_texto += 'N';
             gtx.font =  `${0.05*altura}px Arial`;
-            gtx.fillText(força_texto,xforca,yforca - 0.03 * altura);
+            gtx.fillText(força_texto,xforca + 0.03 * largura,yforca - 0.03 * altura);
             
             //Desenhando a seta do vetor
-            
-            gtx.lineTo(xforca - 20, yforca - 20); // primeira linha diagonal da ponta da seta
-            gtx.moveTo(xforca, yforca); // move o cursor de volta para o ponto final da linha
-            gtx.lineTo(xforca - 20, yforca + 20); // segunda linha diagonal da ponta da seta
+            let angle = Math.atan2(yforca - coordenadas[1], xforca - coordenadas[0]);
+            gtx.beginPath();
             gtx.strokeStyle = '#E60d11';
+            gtx.moveTo(xforca - altura*0.02 * Math.cos(angle - Math.PI / 6), yforca - largura*0.02 * Math.sin(angle - Math.PI / 6));
+            gtx.lineTo(xforca,yforca );
+            gtx.lineTo(xforca - altura*0.02 * Math.cos(angle + Math.PI / 6), yforca - largura*0.02 * Math.sin(angle + Math.PI / 6));
             gtx.stroke();
+           
+            
         }
-        
+        //Desenh dos apoio do nó
         gtx.strokeStyle = '#000000';
         for(j = 0;j<apoios.length;j++){
             if(apoios[j].nó == i){
-               
+                //Escolhendo a imagem de acordo com o tipo de apoio
                 switch (apoios[j].tipo){
                     case 1:
                         img = document.getElementById("movel");
@@ -167,36 +225,11 @@ function draw(){
                         img = document.getElementById("engastamento"); 
                         break;
                 }
+                //Desenhando o apoio
                 gtx.drawImage(img, coordenadas[0]-largura*0.025, coordenadas[1],largura*0.05,altura*0.08);
             
             }
         }
-    }
-    let k;
-    coordenadas = [,,,]
-    for(i = 0;i<membros.length;i++){
-        k = 0;
-        for(j = 0;j<membros[i].nós.length;j++){
-            if(limite_x[1]-limite_x[0] == 0){
-                coordenadas[k] = 0.1 * largura
-
-            }else{
-            coordenadas[k] = 0.1*largura + (0.8 * largura) * ((nós[membros[i].nós[j]].x- limite_x[0])/(limite_x[1]-limite_x[0]));
-            }
-            k++
-            if(limite_y[1]-limite_y[0] == 0){
-                coordenadas[k] = 0.9*altura;
-            }else{
-                coordenadas[k] = altura - (0.1*altura + (0.8 * altura) * ((nós[membros[i].nós[j]].y- limite_y[0])/(limite_y[1]-limite_y[0])));
-            }
-            k++
-        }
-
-        
-        gtx.moveTo(coordenadas[0],coordenadas[1]);
-        gtx.lineTo(coordenadas[2],coordenadas[3]);
-        gtx.lineWidth = altura * 0.004;
-        gtx.stroke();
     }
 
 }
@@ -377,18 +410,18 @@ function add_forca(){
 
 } 
 
+/*
+Função add_membro
+Parâmetros: n/a
+Retorno: n/a
+
+Adiciona um membro com os dados dos selects em dois nós
+Desenha o membro ligado nos dóis nós
+
+Adiciona um parágrafo com o nome do membro na div de componente
+em cada parágrado do nó
+*/
 function add_membro(){
-    /*
-    Função add_membro
-    Parâmetros: n/a
-    Retorno: n/a
-
-    Adiciona um membro com os dados dos selects em dois nós
-    Desenha o membro ligado nos dóis nós
-
-    Adiciona um parágrafo com o nome do membro na div de componente
-    em cada parágrado do nó
-    */
 
     //Pegando valores dos selects
     let nó_selecionado1 = document.getElementById('nó_seletor_membro1').value;
@@ -410,8 +443,8 @@ function add_membro(){
     let nome_membro = nós[i].nome + nós[j].nome;
 
     //Verificando se os nós já tem um membro
-    for(let k = 0;k< nós[i].forcas.length;k++){
-        if(nós[i].forcas[k].nome == nome_membro){
+    for(let k = 0;k< nós[i].reacoes.length;k++){
+        if(nós[i].reacoes[k].nome == nome_membro){
             return window.alert('Já existe um membro nesses nós')
         }
     }
@@ -458,25 +491,28 @@ function add_membro(){
     let p_nó2 = document.getElementById('n' + nós[j].nome);
     new_membro_display.innerText = `Membro ${new_membro.nome}`;
     new_membro_display.style.fontSize = "18px"
+    new_membro_display.style.display = "inline-block";
     p_nó.appendChild(new_membro_display);
-    p_nó2.appendChild(new_membro_display.cloneNode(true));
+    let new_membro_display_2 = new_membro_display.cloneNode(true)
+    new_membro_display_2.innerText = `Membro ${nós[j].nome+nós[i].nome}`;
+    p_nó2.appendChild(new_membro_display_2);
 
 
 
 }
 
+/*
+Função add_apoio
+Parâmetros: n/a
+Retorno: n/a
+
+Adiciona um apoio do tipo selecionado ao nó selecionado
+Coloca uma imagem do apaio no nó selecionado
+Adicioona um p na div de componentes com os nomes das reações dos apoios
+
+
+*/
 function add_apoio(){
-    /*
-    Função add_apoio
-    Parâmetros: n/a
-    Retorno: n/a
-
-    Adiciona um apoio do tipo selecionado ao nó selecionado
-    Coloca uma imagem do apaio no nó selecionado
-    Adicioona um p na div de componentes com os nomes das reações dos apoios
-
-
-    */
 
     //Obtendo valores dos selects
     let nó_selecionado = document.getElementById('nó_seletor_apoio').value;
@@ -549,27 +585,42 @@ function add_apoio(){
 
 }
 
+/*
+Função calc_apoios
+Parâmetros: n/a
+Retorno: vetor com as reações calculadas
 
+Calcula as reações do apoios, formando
+duas matrizes do sistema de equações
+para serem calculadas usando regra de cramer
+
+
+*/
 function calc_apoios(){
 
-    console.log(apoios);
+    //Definindo o centro para o cálculo do momemto
+    //O centro será o nó que contém mais forças de reação
 
     let centro;
     let k = 0;
     let resultados = Array(apoios_reacoes_count).fill().map(() => Array(1).fill(0));
-    aux = nós[apoios[0].nó]
+    aux = apoios[0]
     for(let i = 0;i<apoios.length;i++){
-        if(apoios[i].tipo>aux){
-            aux = nós[apoios[i].nó];
+        if(apoios[i].tipo>aux.tipo){
+            aux = apoios[i];
         }
     }
+    aux = nós[aux.nó]
     centro = aux;
-    
+   
 
     if(apoios_reacoes_count == 3){
         k = 1;
     }
-
+    //Calculando a matriz 2 para resolver com regra de cramer
+    //A matriz 2 conterá a somátoria, em x , y, mo
+    //A matriz 2 terá o número de linhas igual ao número de reações
+    //Se estiver uma ou duas reações, irá escolher a melhor somatória para calcular
     for(i = 0;i<nós.length;i++){
         for(j = 0;j<nós[i].forcas.length;j++){
             resultados[0][0] -= nós[i].forcas[j].y;
@@ -577,11 +628,12 @@ function calc_apoios(){
             resultados[apoios_reacoes_count-k-1][0] -= nós[i].forcas[j].x;
             }
             if(apoios_reacoes_count == 3 || (apoios.length == 2 && apoios_reacoes_count == 2)){
-                resultados[apoios_reacoes_count-1][0] -= nós[i].forcas[j].x * (nós[i].y - centro.y) + nós[i].forcas[j].y * (nós[i].x - centro.x);
+                resultados[apoios_reacoes_count-1][0] -= nós[i].forcas[j].x * (centro.y - nós[i].y ) + nós[i].forcas[j].y * (nós[i].x - centro.x);
             }
     }}
    
-
+    //Fazendo o matriz 1 de acordo com o tipo de apoio
+    //Matriz 1 conterá as incógnitas do sistema
     let matriz1 = Array(apoios_reacoes_count).fill().map(() => Array(apoios_reacoes_count ).fill(0));
     j = 0
     for(i = 0;i<apoios.length;i++){
@@ -612,25 +664,31 @@ function calc_apoios(){
     }
     
 }
-
-
+    //Retornoando os valores das incógnitas
     return math.lusolve(matriz1, resultados);
 }
 
 
 
+/*
+
+Função add_apoio
+Parâmetros: n/a
+Retorno: vetor com: resultados,matriz de incógnitas e vetor de nós utilizados
+
+Calcula as reações dos membro montando duas
+ matrizes e resolvendo o sistema com regra de cramer
+
+
+*/
 function reacoes_membros(){
-    /*
-    Função reacoes membros
-    Calcula os membros
-    */
 
     
     //Setando matriz para regra de cramer
     let matriz_1 = Array(membros.length).fill().map(() => Array(membros.length).fill(0));
     let matriz_2 = Array(membros.length).fill().map(() => Array(1).fill(0));
     let k = 0;
-    
+    let nós_utilizados = [];
     
     //Copiando vetores
     membros_func = Array.from(membros);
@@ -657,28 +715,36 @@ function reacoes_membros(){
             nós_indice[membros_func[i].nós[1]].push(i);
         }
        
-
-        //Escolhe o nó com o maior número de membros
-        let maior_nó = nós_indice[0];
+        let maior_nó = [-1];
         j = 0;
+
+        //Escolhe o nó não utilizado com o maior número de membros não calculado
+        
         for(i = 0;i<nós_indice.length;i++){
             if(nós_indice[i][0]>maior_nó[0] && nós_func[i].utilizado == false){
                 maior_nó = nós_indice[i];
                 j = i;
             }
         }
-        
+        //Escolhe o nó com forças 
+        for(i= 0;i<nós_indice.length;i++){
+            if(nós[i].forcas.length>0 && nós_func[i].utilizado == false){
+                maior_nó = nós_indice[i];
+                j = i
+            }
+        }
         
         //maior_nó[0] vai carregar endereço do nó
         maior_nó[0]= j;
      
         
         
-        let flag = false;
+       
         let flagx = true;
         let flagy = true;
         //Percorrendo todos os membros do maior nó
         if(k+2>membros.length){
+            //Se o número de membros for ímpar, escolhe uma somatória para calcular
             n = 0;
             flagy = false
             for(j = 0;j<nós_func[maior_nó[0]].reacoes;j++){
@@ -692,8 +758,9 @@ function reacoes_membros(){
         }
         
         for(i = 0;i<nós_func[maior_nó[0]].reacoes.length;i++){
-
-            
+            let negx = false
+            let negy = false
+            let nós_membros = nós_func[maior_nó[0]].reacoes[i].nós;
             //Definindo o m para colocar na matriz_1
             for(j = 0;j<membros.length;j++){
                 if(nós_func[maior_nó[0]].reacoes[i].nome == membros[j].nome){
@@ -703,42 +770,55 @@ function reacoes_membros(){
             
             
             //Conferindo se o membro já foi colocado em outro nó
-            //Se já estiver flag = true (colocar resultado negativo na matriz)
-            for(j = 0;j<membros.length;j++){
-                if(matriz_1[j][m] == 1){
-                    flag = true;
-                }
+            //Definindo se a incognita será negativa ou positiva de acordo com as posições dos nós do membro
+            if(nós_func[maior_nó[0]].x> nós_func[nós_membros[0]].x || nós_func[maior_nó[0]].x> nós_func[nós_membros[1]].x){
+                negx = true
+            }
+            if(nós_func[maior_nó[0]].y> nós_func[nós_membros[0]].y || nós_func[maior_nó[0]].y> nós_func[nós_membros[1]].y){
+                negy = true
             }
             
         
             //Membro deitado
             if(nós_func[maior_nó[0]].reacoes[i].y != undefined && flagx == true){
-                
-                if(flag == false){
+                console.log('membro deitado')
+                if(negx == false){
                     matriz_1[k][m] = 1
+                    
                 }else{
                     matriz_1[k][m] = -1
+                    
                 }
             }
             //Membro de pé
             else if(nós_func[maior_nó[0]].reacoes[i].x != undefined && flagy == true){
-                
-                if(flag == false){
+                console.log('membro de pé');
+                if(negy == false){
                     matriz_1[k+n][m] = 1
                 }else{
                     matriz_1[k+n][m] = -1
                 }
             }
             //Membro inclinado
-            else{
-                if(flag == false){
-                    matriz_1[k][m] = math.cos(nós_func[maior_nó[0]].reacoes[i].angulo)
-                    matriz_1[k+n][m] = math.sin(nós_func[maior_nó[0]].reacoes[i].angulo)
-                }else{
-                    matriz_1[k][m] = -math.cos(nós_func[maior_nó[0]].reacoes[i].angulo)
-                    matriz_1[k+n][m] = -math.sin(nós_func[maior_nó[0]].reacoes[i].angulo)
+            else if(nós_func[maior_nó[0]].reacoes[i].x == undefined && nós_func[maior_nó[0]].reacoes[i].y == undefined){
+                
+                    if(flagx == true && negx == false){
+                    matriz_1[k][m] = Math.abs(math.cos(nós_func[maior_nó[0]].reacoes[i].angulo))
+                    }
+                    else if(flagx == true){
+                    matriz_1[k][m] = -Math.abs(math.cos(nós_func[maior_nó[0]].reacoes[i].angulo))
+                    
+                    }
+                    if(flagy == true && negy == false){
+                    matriz_1[k+n][m] = Math.abs(math.sin(nós_func[maior_nó[0]].reacoes[i].angulo))
+                    
+                    }
+                    else if(flagy == true){
+                    matriz_1[k+n][m] = -Math.abs(math.sin(nós_func[maior_nó[0]].reacoes[i].angulo))
+                    
                 }
             }
+
             
         }
         //Somando as forças para colocar na segunda matriz
@@ -770,31 +850,47 @@ function reacoes_membros(){
             j++
         }
         k+= 2;
-       
-        
+        //Coloca o nó_utilizado no vetor nós_utilizados
+        nós_utilizados.push(nós_func[maior_nó[0]].nome);
+        nós_utilizados.push(nós_func[maior_nó[0]].nome);
+        //Definindo o nó como utilizado
         nós_func[maior_nó[0]].utilizado = true;
- 
-    }
-    
-    
 
-    return math.lusolve(matriz_1, matriz_2);
+    }
+    //Retorno da resposta do sistema,matriz de incógnitas, e vetor de nós_utilizados
+    let results = [math.lusolve(matriz_1, matriz_2),matriz_1,nós_utilizados];
+    return results;
 }
 
+/*
+Função calcular
+Parâmetros: n/a
+Retorno: n/a
 
+Chama a função calc_apoios (se sistema válido)
+e coloca o resultado como força em seu respectivo nós,
+cria um p com as reações na div de resultados
+depois chama a reacoes_membros e cria um p com
+as reações dos membros
+
+*/
 function calcular(){
 
+    //Testando se sistema é válido
     if(apoios_reacoes_count>3 || apoios.length>2){
         return window.alert('Sistema não cálculavel com a reações de equilíbrio ')
     }
 
 
-
-    reacoes_apoios = calc_apoios();
     let j = 0;
     let div = document.getElementById("resultados");
     div.style.display = "block";
+
+    if(apoios.length!= 0){
+    //Chamando função de calcular reações dos apoios
+    reacoes_apoios = calc_apoios();
     let p;
+    //Criando p com as informações das reações de acordo com o tipo de apoio
     for(let i = 0;i< apoios.length; i++){
         if(apoios[i].y == undefined){
             apoios[i].y = reacoes_apoios[j][0];
@@ -820,16 +916,40 @@ function calcular(){
          }
          nós[apoios[i].nó].forcas.push(apoios[i])
     }
-
+    }
+    //Chamando função que calcula as reações dos membros
     let reacoes_calculadas =  reacoes_membros();
    
     
     j = 0
+    //Criando p com as informações das reações dos membros
     for(i = 0;i < membros.length;i++){
-        p = document.createElement('p');
-        p.innerText = ` ${membros[i].nome} = ${reacoes_calculadas[j][0]}N`;
-        j++
-        div.appendChild(p);
+        for(j = 0;j<membros.length;j++){
+            if(reacoes_calculadas[1][j][i] != 0){ 
+
+                let resultado = reacoes_calculadas[0][i][0];
+                p = document.createElement('p');
+              
+                
+                if(reacoes_calculadas[2][j] == membros[i].nome.charAt(0)){
+                    p.innerText = ` ${reacoes_calculadas[2][j]+membros[i].nome.charAt(1)} = ${resultado.toFixed(2)}N`;
+                    div.appendChild(p);
+                    p = document.createElement('p');
+                    p.innerText = ` ${membros[i].nome.charAt(1)+ reacoes_calculadas[2][j]} = ${-resultado.toFixed(2)}N`;
+                    div.appendChild(p);
+                }else{
+                    p.innerText = ` ${reacoes_calculadas[2][j]+membros[i].nome.charAt(0)} = ${resultado.toFixed(2)}N`;
+                    div.appendChild(p);
+                    p = document.createElement('p');
+                    p.innerText = ` ${membros[i].nome.charAt(0)+ reacoes_calculadas[2][j]} = ${-resultado.toFixed(2)}N`;
+                    div.appendChild(p);
+                } 
+
+                break;
+            }
+            
+        
+        }
     }
     
     
