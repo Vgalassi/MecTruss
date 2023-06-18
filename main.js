@@ -56,7 +56,9 @@ function trocar(id){
 
 /*
 Funçao trocar
-Parâmetros: n/a
+Parâmetros: results,calc_membros
+Results: indica se o resultado já foi calculado
+calc_membros: carrega as reações dos membros (apenas para resultado)
 Retorno: n/a
 
 Limpa o canvas desenha todos os componentes
@@ -119,14 +121,14 @@ function draw(results,calc_membros){
             }
             k++
         }
-        
+        //Se o resultado for calculado
         if(results == true){
             
             if(calc_membros[i]>0){ 
-                
+                //Linha de azul para tração
                 gtx.strokeStyle = '#070bf5'
             }else if(calc_membros[i]<0){
-                
+                //Linha de vermelho para compressão
                 gtx.strokeStyle = '#f50707'
             }
         }
@@ -141,9 +143,9 @@ function draw(results,calc_membros){
 
         
         gtx.strokeStyle = '#000000';
-
+        //Escrevendo os valores das reações dos membros
         if(results == true){
-            let texto = `${math.abs(calc_membros[i].toFixed(2))}N`
+            let texto = `${calc_membros[i].toFixed(2)}N`
             let midX = (coordenadas[0] + coordenadas[2]) / 2;
             let midY = (coordenadas[1] + coordenadas[3]) / 2;
 
@@ -489,9 +491,112 @@ function add_membro(){
             return window.alert('Já existe um membro nesses nós')
         }
     }
+    let o = i,l = j
+    let m  = i, n = j
+    if(nós[i].x>nós[j].x){
+        o = j
+        l = i
+    }
+    if(nós[i].y>nós[j].y){
+        m  = j
+        n = i
+    }
+    
+    let membros_nós = [i,j];
+ 
+    //Calculando o deltax e deltay do membro
+    let deltax;
+    let deltay;
+    let h,g
+    if(nós[i].x<nós[j].x){
+        deltax = nós[j].x - nós[i].x
+        deltay = nós[j].y - nós[i].y
+       g = i
+       h = j
+       
+    }else if(nós[i].x == nós[j].x && nós[i].y<nós[j].y){
+        g = i
+        h = j
+        deltax = nós[j].x - nós[i].x
+        deltay = nós[j].y - nós[i].y
 
+    }else{
+        deltax = nós[i].x - nós[j].x
+        deltay = nós[i].y - nós[j].y
+        g = j
+        h = i
+        membros_nós = [j,i];
 
+    }
+    let mr = deltax/deltay
+    //Verificando se há colisão com nós
+    for(k = 0;k<nós.length;k++){
+        if(k != i && k!=j){
+            if(nós[o].x == nós[l].x || nós[m].y == nós[n].y){
+                if(nós[k].x >= nós[o].x && nós[k].x <= nós[l].x && nós[k].y >= nós[m].y && nós[k].y <= nós[n].y){
+                    return(window.alert('Colisão entre nós'));
+                }
+            }else{
+                
+                if(nós[k].y == nós[o].y + mr*(nós[k].x - nós[o].x)){
+                    return(window.alert('Colisão entre nós'))
+                }
+            }
+            
+        }
+    }
 
+    //Verificando se há colisão com membros
+    for(k = 0;k<membros.length;k++){
+
+        let x3,x4,y3,y4
+        let x1 = nós[g].x
+        let x2 = nós[h].x
+        let y1 = nós[g].y
+        let y2 = nós[h].y
+        //Calculando os coeficientea
+        let a1 =  y2-y1
+        let b1 = x1 - x2
+        //determinando qual ponnto é menor
+        if(nós[membros[k].nós[0]].x>nós[membros[k].nós[1]].x){
+
+            x3 = nós[membros[k].nós[1]].x;
+            x4 = nós[membros[k].nós[0]].x;
+            y3 = nós[membros[k].nós[1]].y;
+            y4 = nós[membros[k].nós[0]].y;
+            
+        }else{
+            x3 = nós[membros[k].nós[0]].x;
+            x4 = nós[membros[k].nós[1]].x;
+            y3 = nós[membros[k].nós[0]].y;
+            y4 = nós[membros[k].nós[1]].y;
+        }
+        //Calculas os coeficientes
+        a2 = y4-y3
+        b2 = x3-x4
+        //Calculando o c das funções
+        let c1 = a1 * x1 + b1 * y1;
+        let c2 = a2 * x3 + b2 * y3;
+        let determinante = a1 * b2 - a2 * b1;
+        if(determinante != 0){
+            let x = (b2 * c1 - b1 * c2) / determinante;
+            let y = (a1 * c2 - a2 * c1) / determinante;
+
+            //Para membros inclinados
+            if(x > nós[o].x && x < nós[l].x && y > nós[m].y && y < nós[n].y){
+                return window.alert('Colisão entre membros');
+            }
+            //Para membros de verticais
+            if(x == nós[o].x && x == nós[l].x && y > nós[m].y && y < nós[n].y){
+                return window.alert('Colisão entre membros');
+            }
+            //Para membros hroziontais
+            if(x > nós[o].x && x < nós[l].x && y == nós[m].y && y == nós[n].y){
+                return window.alert('Colisão entre membros');
+            }
+        }
+
+    }
     
 
     //Cálculando a possibilidade de reação dos nós
@@ -506,25 +611,13 @@ function add_membro(){
         componentey = undefined;
     }
 
-    let membros_nós = [i,j];
-    if(i>j){
-        membros_nós = [j,i];
-    }
-
-    //Calculando o ângulo do membro
-    let deltax;
-    let deltay;
-    if(nós[i].x<nós[j].y){
-        deltax = nós[j].x - nós[i].x
-        deltay = nós[j].y - nós[i].y
-    }else{
-        deltax = nós[i].x - nós[j].x
-        deltay = nós[i].y - nós[j].y
-    }
     
+
+    //Comprimento da barra eseno dos ângulos
     comprimento = Math.sqrt(deltax**2 + deltay**2); 
     let cos_membro = deltax/comprimento
     let sin_membro = deltay/comprimento 
+    //Criando novo membro
     let new_membro = {
         nome: nome_membro,
         x: componentex,
@@ -602,7 +695,7 @@ function add_apoio(){
     nós[i].apoio = apoios.length;
 
     let texto;
-    let img;
+    
 
     //Colocando valores de acordo com o tipo de apoio selecionado
     switch (tipo_selecionado){
@@ -645,46 +738,33 @@ function add_apoio(){
 
 }
 
+
+
+
+
 /*
-Função calc_apoios
+Função reacoes_membros
 Parâmetros: n/a
-Retorno: vetor com as reações calculadas
+Retorno: vetor com as reações dos apoios e dos membros (retorno[reacoes_apoios,calc_membros])
 
-Calcula as reações do apoios, formando
-duas matrizes do sistema de equações
-para serem calculadas usando regra de cramer
-
-
-*/
-
-
-
-function calc_apoios(){
-
-   
-}
-/*
-
-Função add_apoio
-Parâmetros: n/a
-Retorno: vetor com: resultados,matriz de incógnitas e vetor de nós utilizados
-
-Calcula as reações dos membro montando duas
- matrizes e resolvendo o sistema com regra de cramer
+Calcula as reações dos membros e dos apoios utiliando método da matriz de rigídez
 
 
 */
 function reacoes_membros(){
 
-    
     let matriz_rotacao = [[]];
+    //Matriz de rigidez geral de ordem = dobro de número de nós
     let matriz_rigidez_geral = Array(nós.length*2).fill().map(() => Array(nós.length*2).fill(0));
+    //Definindo matriz de rigidez local
     let matriz_rigidez_local = [[ 1, 0,-1, 0], [ 0, 0, 0, 0], [-1, 0, 1, 0], [ 0, 0, 0, 0]];
+    //Definindo coeficiente elástico e área transversal
     let E = 210000;
     let A = 0.01;
 
 
     for(let i = 0;i<membros.length;i++){
+        //Definindo o sen e cos do membro e fazendo a matriz de rotação
         let cos = membros[i].cos;
         let sin = membros[i].sin;
         matriz_rotacao = [
@@ -693,18 +773,19 @@ function reacoes_membros(){
             [0,0,cos,sin],
             [0,0,-sin, cos]
         ];
-        console.log(`Matriz de rotação de angulo ${Math.acos(cos)* (180 / Math.PI)} do membro ${membros[i].nome}`)
-        console.log(matriz_rotacao);
-        
-        let Kl = math.multiply((A*E)/membros[i].comprimento, matriz_rigidez_local);
 
         
+        //Multiplicando por area transversal * elasticidade
+        let Kl = math.multiply((A*E)/membros[i].comprimento, matriz_rigidez_local);
+
+        //Rotacionando a matriz
         Kl = math.multiply(math.multiply(math.transpose(matriz_rotacao), Kl), matriz_rotacao);
 
 
 
         let coordenadas1 = membros[i].nós[0]*2;
         let coordenadas2 = membros[i].nós[1]*2;
+        //Colocando os dados na matriz de rigidez geral, de acordo com sua posição
         for(let j = 0;j<2;j++){
             for(let k = 0;k<2;k++){
                 matriz_rigidez_geral[coordenadas1+k][coordenadas1+j] += Kl[k][j]
@@ -718,18 +799,21 @@ function reacoes_membros(){
             }
         }
     }
-
-    var matriz_rigidez_geral_comp = matriz_rigidez_geral.map(function(arr) {
+    //Clonando a matriz,tendo a matriz de rigidez completa (sem modificação de apoios)
+    let matriz_rigidez_geral_comp = matriz_rigidez_geral.map(function(arr) {
         return arr.slice();
     });
-    console.log(matriz_rigidez_geral_comp);
+
+    //Manipulando a matriz para graus de liberdade nulos (nó com apoio)
     for(i = 0;i<apoios.length;i++){
         coordenadas = apoios[i].nó * 2
+        //Quando tem restrição vertical
         for(j = 0;j<matriz_rigidez_geral.length;j++){
             matriz_rigidez_geral[coordenadas+1][j] = 0;
             matriz_rigidez_geral[j][coordenadas+1] = 0;
             matriz_rigidez_geral[coordenadas+1][coordenadas+1] = 1;
         }
+        //Quando tem restrição horizontal
         if(apoios[i].tipo != 1){
             for(j = 0;j<matriz_rigidez_geral.length;j++){
                 matriz_rigidez_geral[coordenadas][j] = 0;
@@ -739,8 +823,8 @@ function reacoes_membros(){
         }
         
     }
-    console.log(matriz_rigidez_geral);
-
+    
+    //Criando matriz de forças
     let matriz_forcas = Array(nós.length*2).fill().map(() => Array(1).fill(0));
     for(i = 0;i<nós.length;i++){
         let fx = 0,fy = 0;
@@ -752,20 +836,24 @@ function reacoes_membros(){
         matriz_forcas[i*2 + 1][0] = fy;
     }
 
-    console.log(matriz_forcas);
+    
     let U;
     U = math.lusolve(matriz_rigidez_geral, matriz_forcas);
+    //Matriz com reações de apoios
     R = math.multiply(matriz_rigidez_geral_comp,U);
 
+    //Atribuindo as reações para cada apoio
     let reacoes_apoios = [];
     j = 0
     for(i = 0;i<apoios.length;i++){
         reacoes_apoios.push(R[apoios[i].nó *2][0]);
         reacoes_apoios.push(R[apoios[i].nó *2 +1][0]);
     }
-    console.log(reacoes_apoios);
+    
+    //Fazendo cálculo dos reações dos membros
     let calc_membros = [];
     for(i = 0;i<membros.length;i++){
+        //Estabelecendo a matriz de rotação do membro
         let cos = membros[i].cos;
         let sin = membros[i].sin;
         matriz_rotacao = [
@@ -783,10 +871,11 @@ function reacoes_membros(){
         Ul[3] = U[2*membros[i].nós[1]+1][0]
 
         F = math.multiply(Kl,math.multiply(matriz_rotacao,Ul));
+        //Colocando resultado com no vetor calc_membros
         calc_membros.push(F[2]);
         
     }
-    console.log(calc_membros);
+    //Retornando resultados
     let retorno = [reacoes_apoios,calc_membros];
     return(retorno);
 
@@ -807,19 +896,48 @@ as reações dos membros
 function calcular(){
 
     //Testando se sistema é válido
-    if(apoios_reacoes_count>3 || apoios.length>2){
+    if(apoios_reacoes_count>3 || apoios.length>2 || apoios.length == 0){
         return window.alert('Sistema não cálculavel com a reações de equilíbrio ')
     }
 
+    
 
     let j = 0;
     let div = document.getElementById("resultados");
+    paragrafos = div.querySelectorAll("p");
+    for(i = 1;i<paragrafos.length;i++){
+        div.removeChild(paragrafos[i]);
+    }
+
+
     div.style.display = "block";
-
+    
     let resultados =  reacoes_membros();
-    var reacoes_apoios = resultados[0];
-    var calc_membros = resultados[1];
-
+    let reacoes_apoios = resultados[0];
+    let calc_membros = resultados[1];
+    console.log(reacoes_apoios);
+    let p;
+    //Criando p com as informações das reações de acordo com o tipo de apoio
+    for( i = 0;i< apoios.length; i++){
+            if(apoios[i].tipo != 1){
+                apoios[i].x = reacoes_apoios[j][0];
+                
+                p = document.createElement('p');
+                p.innerText = `H${nós[apoios[i].nó].nome} = ${reacoes_apoios[j].toFixed(2)}N`
+                div.appendChild(p);
+                
+            }
+                j++
+                apoios[i].y = reacoes_apoios[j][0];
+                p = document.createElement('p');
+                p.innerText = `V${nós[apoios[i].nó].nome} = ${reacoes_apoios[j].toFixed(2)}N`
+                div.appendChild(p);
+                j++;
+            
+        
+        
+    }
+    //Chamando função para desenhar os resultados
     draw(true,calc_membros);
    
 
