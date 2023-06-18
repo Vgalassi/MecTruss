@@ -1,1 +1,1 @@
-# Truss-Calculator
+# MecTruss
