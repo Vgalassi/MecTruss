@@ -134,11 +134,15 @@ function draw(results,calc_membros){
         }
     
         //Desenhando o membro
+
         gtx.beginPath();
+        //Definindo pontos da linha
         gtx.moveTo(coordenadas[0],coordenadas[1]);
         gtx.lineTo(coordenadas[2],coordenadas[3]);
+        //Definindo sua largura e altura
         gtx.lineWidth = altura * 0.006;
         gtx.lineHeight = altura * 0.006;
+        //Desenhando a linha
         gtx.stroke();
 
         
@@ -532,13 +536,14 @@ function add_membro(){
     //Verificando se há colisão com nós
     for(k = 0;k<nós.length;k++){
         if(k != i && k!=j){
-            if(nós[o].x == nós[l].x || nós[m].y == nós[n].y){
-                if(nós[k].x >= nós[o].x && nós[k].x <= nós[l].x && nós[k].y >= nós[m].y && nós[k].y <= nós[n].y){
+            if(nós[o].x == nós[l].x ){
+                if(nós[k].x == nós[o].x && nós[k].y>nós[o].y && nós[k].y<nós[l].y){
+                    
                     return(window.alert('Colisão entre nós'));
                 }
             }else{
                 
-                if(nós[k].y == nós[o].y + mr*(nós[k].x - nós[o].x)){
+                if(nós[k].y == nós[o].y + mr*(nós[k].x - nós[o].x) && nós[k].x>nós[o].x && nós[k].x<nós[l].x){
                     return(window.alert('Colisão entre nós'))
                 }
             }
@@ -835,8 +840,6 @@ function reacoes_membros(){
         matriz_forcas[i*2][0] = fx;
         matriz_forcas[i*2 + 1][0] = fy;
     }
-
-    
     let U;
     U = math.lusolve(matriz_rigidez_geral, matriz_forcas);
     //Matriz com reações de apoios
@@ -871,6 +874,7 @@ function reacoes_membros(){
         Ul[3] = U[2*membros[i].nós[1]+1][0]
 
         F = math.multiply(Kl,math.multiply(matriz_rotacao,Ul));
+        console.log(F);
         //Colocando resultado com no vetor calc_membros
         calc_membros.push(F[2]);
         
@@ -896,8 +900,8 @@ as reações dos membros
 function calcular(){
 
     //Testando se sistema é válido
-    if(apoios_reacoes_count>3 || apoios.length>2 || apoios.length == 0){
-        return window.alert('Sistema não cálculavel com a reações de equilíbrio ')
+    if(apoios.length == 0){
+        return window.alert('Coloque pelo menos um apoio ')
     }
 
     
